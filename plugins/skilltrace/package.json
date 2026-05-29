@@ -1,0 +1,9 @@
+{
+  "name": "skilltrace",
+  "version": "0.1.0",
+  "description": "Automatic activity tracing and skill generation for Claude Code",
+  "author": "Lorenzo Campagna",
+  "license": "MIT",
+  "keywords": ["claude-code-plugin", "skills", "automation", "tracing"],
+  "claude-code-plugin": true
+}

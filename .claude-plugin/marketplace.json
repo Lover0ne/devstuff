@@ -1,0 +1,46 @@
+{
+  "name": "devstuff",
+  "description": "A curated suite of Claude Code plugins for skill management: trace, forge, and share reusable skills.",
+  "owner": {
+    "name": "Lorenzo Campagna",
+    "url": "https://github.com/Lover0ne"
+  },
+  "metadata": {
+    "pluginRoot": "./plugins"
+  },
+  "plugins": [
+    {
+      "name": "skilltrace",
+      "source": "skilltrace",
+      "displayName": "Skilltrace",
+      "description": "Automatic activity tracing and skill generation. Converts completed tasks into replayable, context-specific Claude Code skills.",
+      "version": "0.1.0",
+      "author": { "name": "Lorenzo Campagna" },
+      "category": "productivity",
+      "tags": ["skills", "automation", "tracing"],
+      "defaultEnabled": true
+    },
+    {
+      "name": "skillforge",
+      "source": "skillforge",
+      "displayName": "Skillforge",
+      "description": "Analyze projects and generate utility skills via agent swarm.",
+      "version": "0.1.0",
+      "author": { "name": "Lorenzo Campagna" },
+      "category": "productivity",
+      "tags": ["skills", "utility", "automation"],
+      "defaultEnabled": true
+    },
+    {
+      "name": "copycat",
+      "source": "copycat",
+      "displayName": "Copycat",
+      "description": "Anonymize skills into reusable templates with smart placeholders.",
+      "version": "0.1.1",
+      "author": { "name": "Lorenzo Campagna" },
+      "category": "productivity",
+      "tags": ["skills", "templates", "anonymize", "reuse"],
+      "defaultEnabled": true
+    }
+  ]
+}

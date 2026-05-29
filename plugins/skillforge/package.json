@@ -1,0 +1,9 @@
+{
+  "name": "skillforge",
+  "version": "0.1.0",
+  "description": "Analyze projects and generate utility skills via agent swarm",
+  "author": "Lorenzo Campagna",
+  "license": "MIT",
+  "keywords": ["claude-code-plugin", "skills", "utility", "automation"],
+  "claude-code-plugin": true
+}

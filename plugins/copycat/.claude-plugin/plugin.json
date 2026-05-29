@@ -1,0 +1,15 @@
+{
+  "name": "copycat",
+  "displayName": "Copycat",
+  "description": "Anonymize skills into reusable templates with smart placeholders. Clone any skill, replace project-specific values with {{placeholders}}, and generate a version that asks users for inputs when invoked.",
+  "version": "0.1.1",
+  "author": {
+    "name": "Lorenzo Campagna"
+  },
+  "license": "MIT",
+  "keywords": ["skills", "templates", "anonymize", "reuse", "placeholders"],
+  "skills": "./skills/",
+  "commands": [
+    "./commands/clone.md"
+  ]
+}
