@@ -2,7 +2,6 @@
   "name": "skilltrace",
   "displayName": "Skilltrace",
   "description": "Automatic activity tracing and skill generation. Converts completed tasks into replayable, context-specific Claude Code skills.",
-  "version": "0.1.0",
   "author": {
     "name": "Lorenzo Campagna"
   },

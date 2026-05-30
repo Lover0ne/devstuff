@@ -2,7 +2,6 @@
   "name": "skillforge",
   "displayName": "Skillforge",
   "description": "Analyze projects and generate utility skills via agent swarm",
-  "version": "0.1.0",
   "author": {
     "name": "Lorenzo Campagna"
   },
