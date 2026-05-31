@@ -11,7 +11,11 @@ def skilltrace_dir() -> Path:
 
 
 def skills_dir() -> Path:
-    return Path.home() / ".claude" / "skills"
+    return Path.cwd().resolve() / ".claude" / "skills"
+
+
+def project_skilltrace_dir() -> Path:
+    return Path.cwd().resolve() / ".claude" / "skilltrace"
 
 
 

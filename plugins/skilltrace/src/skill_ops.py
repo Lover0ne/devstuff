@@ -9,12 +9,12 @@ import shutil
 import uuid
 from pathlib import Path
 
-from src.shared import skills_dir, skilltrace_dir, error_receipt, find_or_create_project_id
+from src.shared import skills_dir, skilltrace_dir, project_skilltrace_dir, error_receipt, find_or_create_project_id
 from src.registry import load_registry, _save_registry
 
 
 def _versions_dir() -> Path:
-    return skilltrace_dir() / "versions"
+    return project_skilltrace_dir() / "versions"
 
 
 def _skill_dir(skill_id: str) -> Path:
