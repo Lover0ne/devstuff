@@ -108,6 +108,8 @@ tag1, tag2, tag3
 - Extract concrete details (file paths, commands, configs) from the task summary, files, or transcript
 - **Always use relative paths** — never absolute paths, never include usernames or machine-specific directories. Write `src/cli.py` not `C:\Users\someone\project\src\cli.py`
 - **Never hardcode repo names, branch names, or account names** — use generic placeholders if needed
+- **NEVER include secrets, API keys, tokens, passwords, or credentials** — replace with placeholders like `$API_KEY`, `$DB_PASSWORD`, `<your-token>`. This is a security requirement, not a style preference
+- **Never include environment variable values** — reference the variable name only (`$ENV_VAR` or `process.env.VAR`), never the actual value
 - Steps must be reproducible — someone reading this skill should be able to replay the work
 - No narratives ("we did X"). Technique/pattern/reference only.
 - When transcript shows corrections ("no", "change", "scratch that"), reflect ONLY the final approach
