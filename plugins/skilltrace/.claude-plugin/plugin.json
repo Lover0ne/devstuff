@@ -23,6 +23,6 @@
     "./commands/delete.md"
   ],
   "agents": [
-    "./agents/skill-checker.md"
+    "./agents/skilltracer.md"
   ]
 }

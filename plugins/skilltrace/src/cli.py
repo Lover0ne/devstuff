@@ -6,7 +6,7 @@ Commands:
   init                      Enable Skilltrace for current project
   skip                      Decline Skilltrace for current project
   reminder                  UserPromptSubmit hook — arm task boundary gate
-  finalize                  SessionEnd hook — trigger skill-checker for last task
+  finalize                  SessionEnd hook — trigger skilltracer for last task
   pause                     Disable activity tracking
   resume                    Enable activity tracking
   status                    Show plugin status and skill count
@@ -145,12 +145,12 @@ def cmd_reminder(hook_data: dict) -> dict:
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": (
-                "[SKILLTRACE] Spawn the skill-checker agent now "
+                "[SKILLTRACE] Spawn the skilltracer agent now "
                 "(Agent tool, run_in_background=true) with prompt including: "
                 "1) brief summary of the task (what you did, what changed, files involved), "
                 f"2) transcript_path={tp} "
                 f"3) project_dir={cwd} "
-                "4) 'Follow the skill-checker agent procedure from the skilltrace plugin.' "
+                "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.' "
                 "Then retry your tool call."
             )
         }
@@ -163,12 +163,12 @@ def cmd_finalize(hook_data: dict) -> dict:
     tp = hook_data.get("transcript_path", "")
     cwd = os.getcwd()
     return {"additionalContext": (
-        "Session ending. Spawn the skill-checker agent in background. "
+        "Session ending. Spawn the skilltracer agent in background. "
         "In the agent prompt include: "
         "1) brief summary of the task (what you did, what changed, files involved), "
         f"2) transcript_path={tp} "
         f"3) project_dir={cwd} "
-        "4) 'Follow the skill-checker agent procedure from the skilltrace plugin.'"
+        "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.'"
     )}
 
 

@@ -107,7 +107,7 @@ skilltrace/
 │   ├── skill_ops.py         # Skill creation, versioning, archiving
 │   └── transcript.py        # Session transcript scraper
 ├── agents/
-│   └── skill-checker.md     # Background agent that evaluates and generates skills
+│   └── skilltracer.md     # Background agent that evaluates and generates skills
 ├── commands/                 # Slash commands (pause, resume, status, skills, reindex)
 └── skills/
     └── skilltrace-manage/    # Built-in skill for managing generated skills

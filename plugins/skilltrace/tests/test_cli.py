@@ -132,5 +132,5 @@ def test_finalize_returns_additional_context(cli_env):
     from src.cli import cmd_finalize
     result = cmd_finalize({"transcript_path": "/tmp/t.jsonl"})
     assert "additionalContext" in result
-    assert "skill-checker" in result["additionalContext"]
+    assert "skilltracer" in result["additionalContext"]
     assert "Session ending" in result["additionalContext"]
