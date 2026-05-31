@@ -1,4 +1,4 @@
-"""Registry CRUD for Skillforge. Manages ~/.claude/skillforge/registry.json."""
+"""Registry CRUD for Skillforge. Manages .claude/skillforge/registry.json (project-level)."""
 
 import json
 from pathlib import Path

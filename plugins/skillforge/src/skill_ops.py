@@ -1,5 +1,6 @@
 """Skill file operations — scaffold, archive, version management for Skillforge."""
 
+import re
 import shutil
 import uuid
 from pathlib import Path
@@ -24,7 +25,18 @@ def _version_path(skill_id: str, version: int) -> Path:
     return _versions_dir() / skill_id / f"v{version}.md"
 
 
-def _generate_skill_id() -> str:
+def _slugify(name: str) -> str:
+    slug = name.lower().strip()
+    slug = re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")
+    return slug[:64] if slug else f"sk-{uuid.uuid4().hex[:8]}"
+
+
+def _generate_skill_id(name: str = "") -> str:
+    if name:
+        slug = _slugify(name)
+        if slug:
+            return slug
     return f"sk-{uuid.uuid4().hex[:8]}"
 
 
@@ -90,7 +102,7 @@ def prepare_create(metadata: dict) -> dict:
 
     project_dir = metadata.get("project_dir", "")
     version = int(metadata.pop("version", 1))
-    skill_id = _generate_skill_id()
+    skill_id = _generate_skill_id(name)
 
     skill_dir = _skill_dir(skill_id)
     skill_dir.mkdir(parents=True, exist_ok=True)

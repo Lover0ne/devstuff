@@ -9,11 +9,11 @@ _PLUGIN_DIR_NAME = "skillforge"
 
 
 def skillforge_dir() -> Path:
-    return Path.home() / ".claude" / _PLUGIN_DIR_NAME
+    return Path.cwd() / ".claude" / _PLUGIN_DIR_NAME
 
 
 def skills_dir() -> Path:
-    return Path.home() / ".claude" / "skills"
+    return Path.cwd() / ".claude" / "skills"
 
 
 def now_iso() -> str:
