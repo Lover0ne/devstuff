@@ -121,7 +121,7 @@ AskUserQuestion({
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" archive-project
 ```
 
-Archives ALL existing skills for this project and clears them from registry. Old versions preserved in `~/.claude/skillforge/versions/`. This ensures a clean slate — no name-matching needed. Every re-launch produces a fresh complete set.
+Archives ALL existing skills for this project and clears them from registry. Old versions preserved in `.claude/skillforge/versions/` (project-level). This ensures a clean slate — no name-matching needed. Every re-launch produces a fresh complete set.
 
 ## Step 7: Spawn agent swarm
 
@@ -145,4 +145,4 @@ Spawn ALL agents in a single message (parallel launch).
 
 ## Step 8: Report
 
-Tell the user: "Skillforge: N utility skills approved (X new, Y reproposed), set v{version}, N agents working in background. Skills will appear in ~/.claude/skills/"
+Tell the user: "Skillforge: N utility skills approved (X new, Y reproposed), set v{version}, N agents working in background. Skills will appear in .claude/skills/"
