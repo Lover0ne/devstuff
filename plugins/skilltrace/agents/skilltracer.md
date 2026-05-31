@@ -119,17 +119,20 @@ tag1, tag2, tag3
 
 ## Skill Identity & Quality
 
-Skills must be **specific and contextual** — named after the concrete thing built, not the abstract technique:
-- GOOD: `building-mcp-server-for-stripe-with-fastmcp`
-- GOOD: `setting-up-nextjs-auth-with-clerk-and-drizzle`
-- BAD: `creating-a-websocket-server`
-- BAD: `setting-up-authentication`
+Skills must be **specific in stack/technology, generic in personal details**:
+- GOOD: `building-mcp-server-for-stripe-with-fastmcp` — specific stack, no personal info
+- GOOD: `setting-up-nextjs-auth-with-clerk-and-drizzle` — names the tools, not the user
+- BAD: `creating-a-websocket-server` — too vague, no stack detail
+- BAD: `setting-up-authentication` — could be anything
+- BAD: `deploying-acme-corp-api-to-prod` — contains org/project name
+- BAD: `fixing-janes-login-bug` — contains personal reference
 
 Skills must be **self-contained and individually executable**:
 - Include ALL dependencies, libraries, configs, and setup steps
 - No references to "see skill X" or "requires skill Y"
 - A reader with zero prior context must be able to replay the entire workflow
 - Capture the specific tools, libraries, and integration points — the skill is a recipe, not a concept
+- Never reference specific users, organizations, or project names — keep skills portable
 
 The `description` field should name the specific stack/tools, not just the category.
 Example: "Use when building an MCP server for cloud provider APIs using FastMCP and Python" — not "Use when creating MCP servers."
