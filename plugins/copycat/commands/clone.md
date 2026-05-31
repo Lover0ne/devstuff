@@ -33,6 +33,14 @@ Read the entire skill carefully. Identify ALL values that are specific to the or
 | Config values | region, env-specific settings | `{{aws_region}}`, `{{environment}}` |
 | Usernames/handles | `@johndoe`, `admin` | `{{username}}` |
 | Repository names | `Lover0ne/myrepo` | `{{repo_owner}}/{{repo_name}}` |
+| IP addresses / CIDRs | `192.168.1.10`, `10.0.0.0/24` | `{{server_ip}}`, `{{subnet_cidr}}` |
+| Cloud resource IDs | `arn:aws:s3:::my-bucket`, `projects/my-gcp` | `{{aws_arn}}`, `{{gcp_project_id}}` |
+| Docker image names | `acme/myapp:latest`, `registry.io/team/svc` | `{{docker_image}}`, `{{container_registry}}` |
+| SSH keys / certificates | inline PEM blocks, `~/.ssh/id_rsa` | `{{ssh_key_path}}`, `{{certificate_path}}` |
+| Team/channel names | `#deploy-alerts`, `@backend-team` | `{{slack_channel}}`, `{{team_name}}` |
+| CI/CD pipeline names | `deploy-prod.yml`, `Jenkins::MyApp` | `{{pipeline_name}}`, `{{workflow_file}}` |
+| Environment variable names | `MY_APP_DB_URL`, `ACME_SECRET_KEY` | `{{env_var_db}}`, `{{env_var_secret}}` |
+| Password hashes / salts | `$2b$10$abc...`, inline bcrypt/argon2 | `{{password_hash}}` |
 
 ## Step 3: Smart placeholder rules
 
@@ -76,7 +84,7 @@ Group related inputs into a single AskUserQuestion call when possible (max 4 que
 | {{placeholder_1}} | Clear description of what this value is | realistic example |
 | {{placeholder_2}} | Clear description of what this value is | realistic example |
 
-After collecting ALL values, replace every `{{placeholder}}` occurrence in this skill with the user's answers. Then follow the skill steps below.
+After collecting ALL values, perform a **global find-and-replace** for each placeholder across the ENTIRE skill content below. Every `{{placeholder}}` instance MUST be replaced — if a placeholder appears 20 times, all 20 occurrences get the same user-provided value. Do NOT skip any occurrence. Then follow the skill steps below.
 
 ---
 
