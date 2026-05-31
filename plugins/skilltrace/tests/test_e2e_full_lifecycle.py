@@ -89,19 +89,19 @@ class TestHookActivation:
         assert result["additionalContext"] == "Skilltrace active."
 
     def test_reminder_hook(self, plugin_env):
-        """UserPromptSubmit hook returns skill-checker instructions."""
+        """UserPromptSubmit hook returns skilltracer instructions."""
         from src.cli import cmd_reminder
 
         result = cmd_reminder({"transcript_path": "/tmp/session.jsonl"})
         assert result == {}
 
     def test_finalize_hook(self, plugin_env):
-        """SessionEnd hook returns skill-checker instructions."""
+        """SessionEnd hook returns skilltracer instructions."""
         from src.cli import cmd_finalize
 
         result = cmd_finalize({"transcript_path": "/tmp/session.jsonl"})
         assert "Session ending" in result["additionalContext"]
-        assert "skill-checker" in result["additionalContext"]
+        assert "skilltracer" in result["additionalContext"]
 
 
 class TestProjectInit:
@@ -157,7 +157,7 @@ class TestSkillCreationAndVersioning:
         assert result["status"] == "ok"
         assert result["action"] == "create"
         assert result["version"] == 1
-        assert result["skill_id"].startswith("sk-")
+        assert result["skill_id"] == "building-mcp-server-for-stripe"
         assert Path(result["write_to"]).exists()
 
     def test_write_content_then_version(self, plugin_env, monkeypatch):

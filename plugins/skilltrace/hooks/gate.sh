@@ -2,7 +2,7 @@
 # PreToolUse gate — three-stage check.
 # Stage 0: Subagent bypass — skip gate entirely for child agents.
 # Stage 1: Init gate — block if .skilltrace marker missing (whitelist init/skip to avoid deadlock).
-# Stage 2: Task boundary — block once per prompt to force skill-checker evaluation.
+# Stage 2: Task boundary — block once per prompt to force skilltracer evaluation.
 
 # --- Stage 0: Subagent bypass ---
 INPUT=$(cat)
@@ -53,7 +53,7 @@ PENDING="$HOME/.skilltrace-gate/pending"
 [ ! -f "$PENDING" ] && exit 0
 
 # Allow non-blocking tools without consuming the reminder
-# NOTE: Skill is NOT whitelisted here — skill-checker must go through boundary check
+# NOTE: Skill is NOT whitelisted here — skilltracer must go through boundary check
 case "$INPUT" in
     *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"EnterPlanMode\"*|*\"ExitPlanMode\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*|*\"ScheduleWakeup\"*)
         exit 0
