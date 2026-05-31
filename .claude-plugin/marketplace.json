@@ -5,13 +5,10 @@
     "name": "Lorenzo Campagna",
     "url": "https://github.com/Lover0ne"
   },
-  "metadata": {
-    "pluginRoot": "./plugins"
-  },
   "plugins": [
     {
       "name": "skilltrace",
-      "source": "skilltrace",
+      "source": "./plugins/skilltrace",
       "displayName": "Skilltrace",
       "description": "Automatic activity tracing and skill generation. Converts completed tasks into replayable, context-specific Claude Code skills.",
       "version": "0.1.0",
@@ -22,7 +19,7 @@
     },
     {
       "name": "skillforge",
-      "source": "skillforge",
+      "source": "./plugins/skillforge",
       "displayName": "Skillforge",
       "description": "Analyze projects and generate utility skills via agent swarm.",
       "version": "0.1.0",
@@ -33,7 +30,7 @@
     },
     {
       "name": "copycat",
-      "source": "copycat",
+      "source": "./plugins/copycat",
       "displayName": "Copycat",
       "description": "Anonymize skills into reusable templates with smart placeholders.",
       "version": "0.1.1",
