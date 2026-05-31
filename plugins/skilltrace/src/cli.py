@@ -145,15 +145,12 @@ def cmd_reminder(hook_data: dict) -> dict:
             "hookEventName": "PreToolUse",
             "permissionDecision": "deny",
             "permissionDecisionReason": (
-                "[SKILLTRACE] Did you make file changes in the PREVIOUS turn "
-                "that are NOT just comments or aesthetic formatting? "
-                "YES → spawn skill-checker agent "
+                "[SKILLTRACE] Spawn the skill-checker agent now "
                 "(Agent tool, run_in_background=true) with prompt including: "
                 "1) brief summary of the task (what you did, what changed, files involved), "
                 f"2) transcript_path={tp} "
                 f"3) project_dir={cwd} "
                 "4) 'Follow the skill-checker agent procedure from the skilltrace plugin.' "
-                "NO → state: 'Skilltrace: skipped — [reason]'. "
                 "Then retry your tool call."
             )
         }

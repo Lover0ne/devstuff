@@ -5,7 +5,7 @@ description: Creates or updates a skill from completed work. Spawned by Claude m
 
 # Skill Checker
 
-You are spawned after a substantive task completes. Create new skills or update existing ones — a single task can touch multiple skills.
+You are spawned after every task. Your job: check if any existing skills need updating or if new skills should be created. Always err toward updating — even minor changes (renames, reformatting, restructuring) may make an existing skill stale. Only exit without writing if the work genuinely touches no existing skill AND is too trivial for a new one (e.g., a pure conversation with no file changes).
 
 ## Inputs (provided in your spawn prompt)
 
