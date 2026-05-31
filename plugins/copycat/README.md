@@ -2,7 +2,7 @@
 
 A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that turns any skill into a reusable template.
 
-Point it at a skill, and Copycat replaces every project-specific value — paths, names, URLs, keys, emails — with smart `{{placeholders}}`. The output is a new skill that asks users for their own values before running.
+Point it at a skill, and Copycat replaces every project-specific value — paths, names, URLs, keys, emails — with smart `{{placeholders}}`. You choose the output format: sanitized-only or full questionnaire.
 
 ## Install
 
@@ -18,11 +18,14 @@ Point it at a skill, and Copycat replaces every project-specific value — paths
 
 Copycat will:
 
-1. **Find** the skill in `~/.claude/skills/` or installed plugins
-2. **Analyze** it for project-specific values (paths, names, URLs, secrets, etc.)
-3. **Replace** each value with a descriptive `{{placeholder}}`
-4. **Generate** a new skill with a setup section that collects inputs via `AskUserQuestion`
-5. **Save** the template as `<skill-name>-copycat`
+1. **Ask** which mode you want: **sanitize only** or **questionnaire**
+2. **Find** the skill in `~/.claude/skills/` or installed plugins
+3. **Analyze** it for project-specific values (paths, names, URLs, secrets, etc.)
+4. **Replace** each value with a descriptive `{{placeholder}}`
+5. **Output** based on your chosen mode:
+   - **Sanitize only** — raw `{{placeholders}}` with a reference table. Good for sharing, auditing, or manual editing.
+   - **Questionnaire** — adds a setup section that collects every value via `AskUserQuestion` before execution. Good for reusable templates others can invoke directly.
+6. **Save** the template as `<skill-name>-copycat`
 
 ### Example
 

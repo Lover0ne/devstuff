@@ -1,11 +1,24 @@
 ---
 name: clone
-description: Anonymize a skill into a reusable template with smart {{placeholders}}
+description: Anonymize a skill into a reusable template with smart {{placeholders}} — choose sanitize-only or questionnaire mode
 ---
 
 # Clone & Anonymize a Skill
 
 You received a skill name as argument. Follow these steps exactly.
+
+## Step 0: Choose output mode
+
+Ask the user which mode they want using AskUserQuestion:
+
+**Question:** "How should the cloned skill handle placeholders?"
+
+| Option | Label | Description |
+|---|---|---|
+| 1 | **Sanitize only** | Replace all project-specific values with `{{placeholders}}` and leave them as-is. The output skill contains raw placeholders — no setup section, no user prompts. Good for sharing, auditing, or manual editing. |
+| 2 | **Questionnaire** | Replace all project-specific values with `{{placeholders}}` AND prepend a setup section that collects every value from the user via `AskUserQuestion` before execution. Good for reusable templates others can invoke directly. |
+
+Store the user's choice. It determines the output format in Step 4.
 
 ## Step 1: Find the source skill
 
@@ -65,6 +78,40 @@ Read the entire skill carefully. Identify ALL values that are specific to the or
 6. **Placeholder naming:** `{{snake_case}}`, descriptive, max 30 chars. Prefer specificity: `{{slack_webhook_url}}` over `{{url_2}}`.
 
 ## Step 4: Build the anonymized skill
+
+The output format depends on the mode chosen in Step 0.
+
+### Mode A: Sanitize only
+
+Create the new SKILL.md with this structure:
+
+```
+---
+name: {original-name}-copycat
+description: "[Template] {original description with specific names replaced by generic terms}"
+---
+
+## Placeholders Reference
+
+This skill has been sanitized. The following placeholders must be replaced before use:
+
+| Placeholder | Description | Example |
+|---|---|---|
+| {{placeholder_1}} | Clear description of what this value is | realistic example |
+| {{placeholder_2}} | Clear description of what this value is | realistic example |
+
+---
+
+{Original skill content with all project-specific values replaced by {{placeholders}}}
+```
+
+**Important for the Placeholders Reference:**
+- Order placeholders logically (project-level first, then detail-level)
+- Description must be clear enough that someone unfamiliar with the original project can understand what goes there
+- Example column shows a realistic but obviously fake value
+- The placeholders are left as raw `{{placeholder}}` text in the skill body — no AskUserQuestion, no auto-collection
+
+### Mode B: Questionnaire
 
 Create the new SKILL.md with this structure:
 
