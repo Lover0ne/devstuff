@@ -64,7 +64,7 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"
 
 **For new_version:**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"new_version","id":"sk-xxxxxxxx","change_summary":"Brief description of what changed"}'
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"new_version","id":"existing-skill-id","change_summary":"Brief description of what changed"}'
 ```
 
 Both return JSON with `write_to` — the absolute path where you must write the SKILL.md content.
@@ -90,7 +90,7 @@ One paragraph: what this skill does and what it produces.
 One paragraph: the problem it solves or the context that motivated it.
 
 ## How
-Step-by-step numbered instructions with exact commands and file paths from the transcript.
+Step-by-step numbered instructions with commands and relative file paths. Convert any absolute paths to relative.
 
 ## Files
 - `path/to/file.ext` — description of role
