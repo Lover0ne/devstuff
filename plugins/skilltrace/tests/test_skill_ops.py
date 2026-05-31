@@ -35,7 +35,7 @@ class TestPrepareCreate:
         assert result["status"] == "ok"
         assert result["action"] == "create"
         assert result["version"] == 1
-        assert result["skill_id"].startswith("sk-")
+        assert result["skill_id"] == "jwt-auth"
         path = Path(result["write_to"])
         assert path.exists()
         assert path.read_text() == ""
@@ -48,7 +48,7 @@ class TestPrepareCreate:
         assert len(entries) == 1
         assert entries[0]["project_id"] == "proj-test1234"
         assert entries[0]["version"] == 1
-        assert entries[0]["id"].startswith("sk-")
+        assert entries[0]["id"] == "jwt-auth"
 
     def test_generates_unique_ids(self, skill_env):
         from src.skill_ops import prepare_create

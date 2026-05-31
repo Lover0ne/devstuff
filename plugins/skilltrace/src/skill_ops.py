@@ -4,6 +4,7 @@ AI decides WHAT to do (create/new version). This module does the file IO.
 Version scheme: v1, v2, v3... (simple integer, always increments).
 """
 
+import re
 import shutil
 import uuid
 from pathlib import Path
@@ -28,7 +29,18 @@ def _version_path(skill_id: str, version: int) -> Path:
     return _versions_dir() / skill_id / f"v{version}.md"
 
 
-def _generate_skill_id() -> str:
+def _slugify(name: str) -> str:
+    slug = name.lower().strip()
+    slug = re.sub(r"[^a-z0-9]+", "-", slug)
+    slug = slug.strip("-")
+    return slug[:64] if slug else f"sk-{uuid.uuid4().hex[:8]}"
+
+
+def _generate_skill_id(name: str = "") -> str:
+    if name:
+        slug = _slugify(name)
+        if slug:
+            return slug
     return f"sk-{uuid.uuid4().hex[:8]}"
 
 
@@ -74,7 +86,10 @@ def prepare_create(metadata: dict) -> dict:
         return error_receipt("Missing skill name", "skill_create")
 
     project_id, _ = find_or_create_project_id()
-    skill_id = _generate_skill_id()
+    skill_id = _generate_skill_id(name)
+
+    if _skill_dir(skill_id).exists():
+        skill_id = f"{skill_id}-{uuid.uuid4().hex[:4]}"
 
     skill_dir = _skill_dir(skill_id)
     skill_dir.mkdir(parents=True, exist_ok=True)

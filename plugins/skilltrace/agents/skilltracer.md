@@ -106,6 +106,8 @@ tag1, tag2, tag3
 ## Writing Rules
 
 - Extract concrete details (file paths, commands, configs) from the task summary, files, or transcript
+- **Always use relative paths** — never absolute paths, never include usernames or machine-specific directories. Write `src/cli.py` not `C:\Users\someone\project\src\cli.py`
+- **Never hardcode repo names, branch names, or account names** — use generic placeholders if needed
 - Steps must be reproducible — someone reading this skill should be able to replay the work
 - No narratives ("we did X"). Technique/pattern/reference only.
 - When transcript shows corrections ("no", "change", "scratch that"), reflect ONLY the final approach

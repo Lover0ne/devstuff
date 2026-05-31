@@ -157,7 +157,7 @@ class TestSkillCreationAndVersioning:
         assert result["status"] == "ok"
         assert result["action"] == "create"
         assert result["version"] == 1
-        assert result["skill_id"].startswith("sk-")
+        assert result["skill_id"] == "building-mcp-server-for-stripe"
         assert Path(result["write_to"]).exists()
 
     def test_write_content_then_version(self, plugin_env, monkeypatch):
