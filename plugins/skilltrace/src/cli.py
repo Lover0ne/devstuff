@@ -147,7 +147,8 @@ def cmd_reminder(hook_data: dict) -> dict:
             "permissionDecisionReason": (
                 "[SKILLTRACE] Spawn the skilltracer agent now "
                 "(Agent tool, run_in_background=true) with prompt including: "
-                "1) brief summary of the task (what you did, what changed, files involved), "
+                "1) detailed summary of the task — what you did, what changed, files involved. "
+                "If subagents were used, include what EACH subagent did and what files it modified. "
                 f"2) transcript_path={tp} "
                 f"3) project_dir={cwd} "
                 "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.' "
@@ -165,7 +166,8 @@ def cmd_finalize(hook_data: dict) -> dict:
     return {"additionalContext": (
         "Session ending. Spawn the skilltracer agent in background. "
         "In the agent prompt include: "
-        "1) brief summary of the task (what you did, what changed, files involved), "
+        "1) detailed summary of the task — what you did, what changed, files involved. "
+        "If subagents were used, include what EACH subagent did and what files it modified. "
         f"2) transcript_path={tp} "
         f"3) project_dir={cwd} "
         "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.'"
