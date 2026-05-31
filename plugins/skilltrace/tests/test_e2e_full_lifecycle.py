@@ -316,6 +316,7 @@ class TestSkillsInventory:
         r = cmd_skill_write(json.dumps({
             "action": "create",
             "name": "MCP Stripe Server",
+            "description": "Use when building MCP server for Stripe API",
             "tags": ["mcp", "stripe"],
         }))
         Path(r["write_to"]).write_text(
@@ -499,6 +500,7 @@ class TestFullLifecycleE2E:
         r1 = cmd_skill_write(json.dumps({
             "action": "create",
             "name": "Setting Up NextJS Auth with Clerk and Drizzle",
+            "description": "Use when setting up NextJS auth with Clerk and Drizzle ORM",
             "tags": ["nextjs", "clerk", "drizzle", "auth"],
         }))
         assert r1["version"] == 1

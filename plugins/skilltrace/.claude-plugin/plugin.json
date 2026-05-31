@@ -18,9 +18,7 @@
     "./commands/reindex.md",
     "./commands/skills.md",
     "./commands/history.md",
-    "./commands/overview.md",
-    "./commands/show.md",
-    "./commands/delete.md"
+    "./commands/overview.md"
   ],
   "agents": [
     "./agents/skilltracer.md"

@@ -59,7 +59,7 @@ Repeat Steps 4-5 for each skill to create or update. A single run may produce mu
 
 **For create:**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name","tags":["tag1","tag2"]}'
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name","description":"Use when [trigger]. [What it does].","tags":["tag1","tag2"]}'
 ```
 
 **For new_version:**

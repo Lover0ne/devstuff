@@ -11,8 +11,6 @@ Commands:
   resume                    Enable activity tracking
   status                    Show plugin status and skill count
   skills                    List all skills with descriptions and versions
-  show <skill-id>           Show full content of a skill
-  delete <skill-id>         Delete skill from registry and disk
   history <skill-id>        Show version history of a skill
   overview                  Show skills across all projects
   reindex                   Rebuild registry from SKILL.md files on disk
@@ -28,7 +26,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, find_or_create_project_id, now_iso
+from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, project_skilltrace_dir, find_or_create_project_id, now_iso
 from src.config import load_config, is_enabled, set_enabled
 from src.registry import add_entry, remove_entry, list_entries
 from src.transcript import scrape_transcript
@@ -51,9 +49,10 @@ def cmd_setup() -> dict:
     cfg_path = base / "config.json"
     first_run = not cfg_path.exists()
 
-    dirs = [base, base / "versions", skills_dir()]
-    for d in dirs:
-        d.mkdir(parents=True, exist_ok=True)
+    base.mkdir(parents=True, exist_ok=True)
+    skills_dir().mkdir(parents=True, exist_ok=True)
+    project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
+    (project_skilltrace_dir() / "versions").mkdir(parents=True, exist_ok=True)
 
     cfg = load_config()
     status = "active" if cfg.get("enabled", True) else "dormant"
@@ -63,7 +62,7 @@ def cmd_setup() -> dict:
     if first_run:
         result["additionalContext"] = (
             "Skilltrace installed. It automatically traces your work and converts "
-            "completed tasks into replayable skills stored in ~/.claude/skills/. "
+            "completed tasks into replayable skills stored in .claude/skills/. "
             "Runs silently in background — zero overhead. "
             "Disable anytime with /skilltrace:pause."
         )
@@ -224,25 +223,17 @@ def cmd_skills() -> dict:
 
     skills_list = []
     for e in entries:
-        info = {
+        is_current = e.get("project_id") == project_id if project_id else False
+        skills_list.append({
             "id": e.get("id"),
             "name": e.get("name"),
+            "description": e.get("description", ""),
             "version": e.get("version", 1),
             "project_id": e.get("project_id"),
-            "is_current_project": e.get("project_id") == project_id if project_id else False,
+            "is_current_project": is_current,
             "created": e.get("created", ""),
             "updated": e.get("updated", ""),
-        }
-        skill_path = skills_dir() / e.get("id", "") / "SKILL.md"
-        if skill_path.exists():
-            try:
-                for line in skill_path.read_text(encoding="utf-8").splitlines():
-                    if line.startswith("description:"):
-                        info["description"] = line.split(":", 1)[1].strip().strip('"')
-                        break
-            except Exception:
-                pass
-        skills_list.append(info)
+        })
 
     return {
         "total": len(entries),
@@ -267,75 +258,21 @@ def cmd_reindex() -> dict:
         skill_id = skill_dir.name
         content = skill_file.read_text(encoding="utf-8")
         name = skill_id
+        description = ""
         for line in content.splitlines():
             if line.startswith("# "):
                 name = line[2:].strip()
-                break
+            if line.startswith("description:"):
+                description = line.split(":", 1)[1].strip().strip('"')
         add_entry({
             "id": skill_id,
             "name": name,
+            "description": description,
             "tags": [],
-            "path": f"{skill_id}/SKILL.md",
             "project_id": project_id,
         })
         count += 1
     return receipt("ok", "reindex", f"{count} skills indexed")
-
-
-def cmd_show(skill_id: str) -> dict:
-    if not skill_id:
-        return error_receipt("Skill ID required", "show")
-    entries = list_entries()
-    entry = next((e for e in entries if e.get("id") == skill_id), None)
-    if not entry:
-        return error_receipt(f"Skill '{skill_id}' not found in registry", "show")
-
-    skill_path = skills_dir() / skill_id / "SKILL.md"
-    content = ""
-    if skill_path.exists():
-        content = skill_path.read_text(encoding="utf-8")
-
-    return {
-        "skill_id": skill_id,
-        "name": entry.get("name"),
-        "version": entry.get("version", 1),
-        "project_id": entry.get("project_id"),
-        "created": entry.get("created", ""),
-        "updated": entry.get("updated", ""),
-        "path": str(skill_path),
-        "content": content,
-    }
-
-
-def cmd_delete(skill_id: str) -> dict:
-    if not skill_id or "/" in skill_id or "\\" in skill_id or ".." in skill_id:
-        return error_receipt(f"Invalid skill ID: {skill_id}", "delete")
-    entries = list_entries()
-    entry = next((e for e in entries if e.get("id") == skill_id), None)
-    if not entry:
-        return error_receipt(f"Skill '{skill_id}' not found in registry", "delete")
-
-    import shutil
-    removed = []
-    skill_dir = skills_dir() / skill_id
-    if skill_dir.exists() and skill_dir.is_dir():
-        shutil.rmtree(skill_dir)
-        removed.append(str(skill_dir))
-
-    versions_dir = skilltrace_dir() / "versions" / skill_id
-    if versions_dir.exists() and versions_dir.is_dir():
-        shutil.rmtree(versions_dir)
-        removed.append(str(versions_dir))
-
-    remove_entry(skill_id)
-
-    return {
-        "status": "ok",
-        "action": "deleted",
-        "skill_id": skill_id,
-        "name": entry.get("name"),
-        "removed_paths": removed,
-    }
 
 
 def cmd_history(skill_id: str) -> dict:
@@ -347,7 +284,7 @@ def cmd_history(skill_id: str) -> dict:
         return error_receipt(f"Skill '{skill_id}' not found in registry", "history")
 
     current_path = skills_dir() / skill_id / "SKILL.md"
-    versions_base = skilltrace_dir() / "versions" / skill_id
+    versions_base = project_skilltrace_dir() / "versions" / skill_id
     current_version = entry.get("version", 1)
 
     history = []
@@ -379,23 +316,14 @@ def cmd_overview() -> dict:
         pid = e.get("project_id", "unknown")
         if pid not in projects:
             projects[pid] = []
-        info = {
+        projects[pid].append({
             "id": e.get("id"),
             "name": e.get("name"),
+            "description": e.get("description", ""),
             "version": e.get("version", 1),
             "created": e.get("created", ""),
             "updated": e.get("updated", ""),
-        }
-        skill_path = skills_dir() / e.get("id", "") / "SKILL.md"
-        if skill_path.exists():
-            try:
-                for line in skill_path.read_text(encoding="utf-8").splitlines():
-                    if line.startswith("description:"):
-                        info["description"] = line.split(":", 1)[1].strip().strip('"')
-                        break
-            except Exception:
-                pass
-        projects[pid].append(info)
+        })
 
     current_project_id = _read_project_id()
     return {
@@ -430,7 +358,7 @@ def main():
 
     command = sys.argv[1]
 
-    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "show", "delete", "scrape-transcript", "skill-write")
+    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "scrape-transcript", "skill-write")
     if not is_enabled() and command not in always_allowed:
         if command in ("reminder", "finalize"):
             print(json.dumps({}))
@@ -506,20 +434,6 @@ def main():
 
         elif command == "reindex":
             result = cmd_reindex()
-            print(json.dumps(result))
-
-        elif command == "show":
-            if len(sys.argv) < 3:
-                print(json.dumps(error_receipt("Skill ID required", "show")), file=sys.stderr)
-                sys.exit(1)
-            result = cmd_show(sys.argv[2])
-            print(json.dumps(result))
-
-        elif command == "delete":
-            if len(sys.argv) < 3:
-                print(json.dumps(error_receipt("Skill ID required", "delete")), file=sys.stderr)
-                sys.exit(1)
-            result = cmd_delete(sys.argv[2])
             print(json.dumps(result))
 
         elif command == "history":
