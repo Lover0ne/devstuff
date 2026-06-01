@@ -346,7 +346,7 @@ let searchQuery = '';
 function init() {
   const theme = localStorage.getItem('st-theme') || 'light';
   document.documentElement.setAttribute('data-theme', theme);
-  document.getElementById('generated').textContent = 'Generated: ' + DATA.generated;
+  document.getElementById('generated').textContent = 'Generated: ' + new Date(DATA.generated).toLocaleString('en-GB', {day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
   renderProjects();
   renderSkills();
   document.getElementById('search').addEventListener('input', e => {
