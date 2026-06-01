@@ -194,7 +194,6 @@ a:hover { text-decoration: underline; }
 .topbar { padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--bg2); display: flex; align-items: center; gap: 14px; }
 .search { flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 14px; outline: none; transition: border 0.2s; }
 .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(95,168,211,0.15); }
-.stats { font-size: 13px; color: var(--fg3); white-space: nowrap; font-weight: 500; }
 .content { flex: 1; overflow-y: auto; padding: 24px; }
 .empty { text-align: center; padding: 80px 20px; color: var(--fg3); }
 .empty h3 { font-size: 18px; margin-bottom: 8px; color: var(--fg2); }
@@ -281,7 +280,6 @@ a:hover { text-decoration: underline; }
 <div class="main">
   <div class="topbar">
     <input class="search" id="search" type="text" placeholder="Search skills by name, tag, or description...">
-    <span class="stats" id="stats"></span>
   </div>
   <div class="content" id="content"></div>
 </div>
@@ -361,8 +359,6 @@ function getFilteredSkills() {
 function renderSkills() {
   const skills = getFilteredSkills();
   const el = document.getElementById('content');
-  const totalProjects = new Set(skills.map(s => s.projectId)).size;
-  document.getElementById('stats').textContent = `${skills.length} skill${skills.length !== 1 ? 's' : ''} in ${totalProjects} project${totalProjects !== 1 ? 's' : ''}`;
   if (!skills.length) {
     el.innerHTML = '<div class="empty"><h3>No skills found</h3><p>Skills will appear here as Skilltrace generates them.</p></div>';
     return;
