@@ -118,8 +118,9 @@ def test_registry_list_via_cli(cli_env, monkeypatch):
     monkeypatch.setattr(registry, "_registry_path", lambda: reg_file)
     registry.add_entry({"id": "a", "name": "A", "tags": [], "path": "a/SKILL.md"})
     result = cli.cmd_registry_list()
-    assert isinstance(result, list)
-    assert len(result) == 1
+    assert isinstance(result, dict)
+    entries = result["skills"]
+    assert len(entries) == 1
 
 
 def test_reminder_returns_empty_without_marker(cli_env):

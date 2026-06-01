@@ -228,7 +228,8 @@ class TestSkillCreationAndVersioning:
         assert "# v1" in Path(r2["archived"]).read_text(encoding="utf-8")
         assert "# v2" in Path(r3["archived"]).read_text(encoding="utf-8")
 
-        entries = cmd_registry_list()
+        result = cmd_registry_list()
+        entries = result["skills"]
         matching = [e for e in entries if e["id"] == sid]
         assert len(matching) == 1
         assert matching[0]["version"] == 3
@@ -248,12 +249,13 @@ class TestRegistryOperations:
             "tags": ["test"],
             "path": "sk-test/SKILL.md",
         }))
-        entries = cmd_registry_list()
+        result = cmd_registry_list()
+        entries = result["skills"]
         assert len(entries) == 1
         assert entries[0]["name"] == "Test Skill"
 
         cmd_registry_remove("sk-test")
-        assert len(cmd_registry_list()) == 0
+        assert len(cmd_registry_list()["skills"]) == 0
 
     def test_project_filtering(self, plugin_env, monkeypatch):
         from src.cli import cmd_setup, cmd_skill_write, cmd_registry_list
@@ -281,13 +283,15 @@ class TestRegistryOperations:
             "tags": ["b"],
         }))
 
-        all_entries = cmd_registry_list(project_only=False)
+        all_result = cmd_registry_list(project_only=False)
+        all_entries = all_result["skills"]
         assert len(all_entries) == 2
 
         (plugin_env["project_dir"] / ".skilltrace").write_text(
             json.dumps({"project_id": "proj-A"})
         )
-        filtered = cmd_registry_list(project_only=True)
+        filtered_result = cmd_registry_list(project_only=True)
+        filtered = filtered_result["skills"]
         assert len(filtered) == 1
         assert filtered[0]["name"] == "Skill from Project A"
 
@@ -422,7 +426,8 @@ class TestReindex:
         assert result["status"] == "ok"
         assert "1 skills indexed" in result["file"]
 
-        entries = cmd_registry_list()
+        reindex_result = cmd_registry_list()
+        entries = reindex_result["skills"]
         assert len(entries) == 1
         assert entries[0]["id"] == "sk-manual"
         assert entries[0]["name"] == "Manual Skill"
@@ -531,7 +536,8 @@ class TestFullLifecycleE2E:
         assert "Auth setup steps" in archived.read_text(encoding="utf-8")
 
         # 8. Registry shows version 2
-        entries = cmd_registry_list()
+        reg_result = cmd_registry_list()
+        entries = reg_result["skills"]
         match = [e for e in entries if e["id"] == sid]
         assert match[0]["version"] == 2
         assert match[0]["change_summary"] == "Added social login providers"

@@ -121,13 +121,17 @@ def cmd_registry_remove(skill_id: str) -> dict:
     return remove_entry(skill_id)
 
 
-def cmd_registry_list(project_only: bool = False) -> list:
+def cmd_registry_list(project_only: bool = False) -> dict:
     entries = list_entries()
     if project_only:
         project_id = _read_project_id()
         if project_id:
             entries = [e for e in entries if e.get("project_id") == project_id]
-    return entries
+    return {
+        "skills": entries,
+        "count": len(entries),
+        "instructions": "Compare each skill against the work done. For matches, use skill-write --prepare with action=new_version. For uncovered work, use action=create. Always include description field.",
+    }
 
 
 def cmd_reminder(hook_data: dict) -> dict:

@@ -42,7 +42,8 @@ def test_create_via_cli_then_list(full_env):
     assert result["action"] == "create"
     assert result["version"] == 1
 
-    entries = cmd_registry_list()
+    result = cmd_registry_list()
+    entries = result["skills"]
     assert len(entries) == 1
     assert entries[0]["name"] == "Docker Compose Setup"
     assert entries[0]["project_id"] == "proj-e2etest"
@@ -92,12 +93,14 @@ def test_project_filtered_list(full_env, monkeypatch):
         "tags": ["b"],
     }))
 
-    all_entries = cmd_registry_list(project_only=False)
+    all_result = cmd_registry_list(project_only=False)
+    all_entries = all_result["skills"]
     assert len(all_entries) == 2
 
     (full_env / ".skilltrace").write_text(json.dumps({"project_id": "proj-e2etest"}))
     monkeypatch.chdir(full_env)
-    filtered = cmd_registry_list(project_only=True)
+    filtered_result = cmd_registry_list(project_only=True)
+    filtered = filtered_result["skills"]
     assert len(filtered) == 1
     assert filtered[0]["name"] == "Skill A"
 
@@ -158,7 +161,8 @@ def test_full_lifecycle_three_versions(full_env):
     assert Path(r2["archived"]).read_text(encoding="utf-8") == "# v1 content"
     assert Path(r3["archived"]).read_text(encoding="utf-8") == "# v2 content"
 
-    entries = cmd_registry_list()
+    result = cmd_registry_list()
+    entries = result["skills"]
     assert len(entries) == 1
     assert entries[0]["version"] == 3
     assert entries[0]["change_summary"] == "Added rollback"

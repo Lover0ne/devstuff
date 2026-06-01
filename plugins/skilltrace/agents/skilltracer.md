@@ -22,7 +22,7 @@ cd {project_dir}
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" registry --list --project
 ```
 
-Returns JSON array of existing skills for this project. Each entry has: `id`, `name`, `tags`, `version`, `path`, `project_id`.
+Returns JSON with `skills` array and `instructions`. Each skill entry has: `id`, `name`, `description`, `tags`, `version`, `project_id`. Follow the `instructions` field.
 
 ### Step 2: Understand the work
 
