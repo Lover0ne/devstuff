@@ -17,6 +17,7 @@ Commands:
   scrape-transcript --stdin Scrape transcript JSONL, return clean JSON array
   registry        --add/--remove/--list   Registry CRUD operations
   skill-write     --prepare JSON   Scaffold skill files, archive old versions
+  dashboard       [--no-open]     Generate and open interactive HTML dashboard
 """
 
 import json
@@ -334,6 +335,12 @@ def cmd_overview() -> dict:
     }
 
 
+def cmd_dashboard() -> dict:
+    from src.dashboard import generate
+    no_open = "--no-open" in sys.argv
+    return generate(no_open=no_open)
+
+
 def cmd_skill_write(metadata_json: str) -> dict:
     try:
         meta = json.loads(metadata_json)
@@ -358,7 +365,7 @@ def main():
 
     command = sys.argv[1]
 
-    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "scrape-transcript", "skill-write")
+    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "dashboard", "scrape-transcript", "skill-write")
     if not is_enabled() and command not in always_allowed:
         if command in ("reminder", "finalize"):
             print(json.dumps({}))
@@ -445,6 +452,10 @@ def main():
 
         elif command == "overview":
             result = cmd_overview()
+            print(json.dumps(result))
+
+        elif command == "dashboard":
+            result = cmd_dashboard()
             print(json.dumps(result))
 
         elif command == "skill-write":
