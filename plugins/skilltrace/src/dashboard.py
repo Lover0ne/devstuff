@@ -217,12 +217,52 @@ a:hover { text-decoration: underline; }
 /* Modal */
 .modal-overlay { position: fixed; inset: 0; background: rgba(12,22,32,0.6); display: none; z-index: 100; align-items: center; justify-content: center; backdrop-filter: blur(2px); }
 .modal-overlay.open { display: flex; }
-.modal { background: var(--bg2); border-radius: 16px; width: 90%; max-width: 900px; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 12px 48px rgba(27,73,101,0.2); border: 1px solid var(--border); }
-.modal-header { padding: 18px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+.modal { background: var(--bg2); border-radius: 16px; width: 94%; max-width: 1100px; max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 12px 48px rgba(27,73,101,0.2); border: 1px solid var(--border); }
+.modal-header { padding: 16px 24px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .modal-header h3 { font-size: 17px; font-weight: 600; color: var(--accent-dark); }
 .modal-close { background: none; border: 1px solid var(--border); border-radius: 8px; width: 32px; height: 32px; font-size: 18px; cursor: pointer; color: var(--fg2); display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
 .modal-close:hover { background: var(--bg3); border-color: var(--accent); }
+.modal-tabs { display: flex; border-bottom: 1px solid var(--border); padding: 0 24px; }
+.modal-tab { padding: 10px 18px; font-size: 13px; font-weight: 500; color: var(--fg3); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s; }
+.modal-tab:hover { color: var(--fg); }
+.modal-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 .modal-body { flex: 1; overflow-y: auto; padding: 24px; }
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+
+/* Compare controls */
+.compare-controls { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; flex-wrap: wrap; }
+.compare-controls label { font-size: 13px; color: var(--fg2); font-weight: 500; }
+.compare-controls select { padding: 6px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 13px; }
+.compare-mode { display: flex; gap: 4px; }
+.compare-mode button { padding: 5px 12px; border: 1px solid var(--border); background: var(--bg); color: var(--fg2); cursor: pointer; font-size: 12px; }
+.compare-mode button:first-child { border-radius: 6px 0 0 6px; }
+.compare-mode button:last-child { border-radius: 0 6px 6px 0; }
+.compare-mode button.active { background: var(--accent); color: white; border-color: var(--accent); }
+
+/* Side-by-side diff */
+.diff-side { display: flex; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.diff-pane { flex: 1; overflow-x: auto; }
+.diff-pane-header { padding: 8px 14px; background: var(--bg3); font-size: 12px; font-weight: 600; color: var(--accent-dark); border-bottom: 1px solid var(--border); }
+.diff-pane:first-child { border-right: 1px solid var(--border); }
+.diff-pane-line { padding: 1px 14px; font-family: 'Cascadia Code', 'SF Mono', Consolas, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; min-height: 20px; display: flex; }
+.diff-pane-line .ln { color: var(--fg3); min-width: 32px; text-align: right; padding-right: 10px; user-select: none; opacity: 0.5; }
+.diff-pane-line.diff-add { background: var(--diff-add); color: var(--diff-add-fg); }
+.diff-pane-line.diff-rm { background: var(--diff-rm); color: var(--diff-rm-fg); }
+.diff-pane-line.diff-empty { background: var(--bg3); opacity: 0.3; }
+
+/* Version timeline */
+.timeline { display: flex; flex-direction: column; gap: 2px; }
+.timeline-item { display: flex; align-items: stretch; gap: 14px; cursor: pointer; padding: 12px 14px; border-radius: 8px; transition: background 0.15s; }
+.timeline-item:hover { background: var(--bg3); }
+.timeline-dot-col { display: flex; flex-direction: column; align-items: center; width: 20px; }
+.timeline-dot { width: 12px; height: 12px; border-radius: 50%; background: var(--border); flex-shrink: 0; margin-top: 4px; }
+.timeline-dot.current { background: var(--accent); box-shadow: 0 0 0 3px rgba(95,168,211,0.25); }
+.timeline-line { flex: 1; width: 2px; background: var(--border); margin-top: 4px; }
+.timeline-info { flex: 1; }
+.timeline-version { font-size: 14px; font-weight: 600; color: var(--accent-dark); }
+.timeline-label { font-size: 12px; color: var(--fg3); margin-top: 2px; }
+.timeline-item:last-child .timeline-line { display: none; }
 
 /* Markdown */
 .md-content h1 { font-size: 24px; font-weight: 700; color: var(--accent-dark); margin: 20px 0 10px; border-bottom: 2px solid var(--border); padding-bottom: 8px; }
@@ -289,7 +329,12 @@ a:hover { text-decoration: underline; }
       <h3 id="modalTitle"></h3>
       <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
-    <div class="modal-body md-content" id="modalBody"></div>
+    <div class="modal-tabs" id="modalTabs"></div>
+    <div class="modal-body">
+      <div class="tab-content active" id="tabContent"></div>
+      <div class="tab-content" id="tabHistory"></div>
+      <div class="tab-content" id="tabCompare"></div>
+    </div>
   </div>
 </div>
 <script>
@@ -380,31 +425,14 @@ function renderSkills() {
       ${tags ? `<div class="skill-tags">${tags}</div>` : ''}
       <div class="skill-actions">
         <button class="btn btn-primary" onclick="viewSkill(${i})">View</button>
-        ${s.versions.length > 1 ? `<button class="btn" onclick="toggleHistory(${i})">History</button>` : ''}
-      </div>
-      <div class="history-panel" id="history-${i}">
-        ${renderHistory(s, i)}
+        ${s.versions.length > 1 ? `<button class="btn" onclick="viewSkill(${i});switchTab('compare')">Compare</button>` : ''}
       </div>
     </div>`;
   }).join('');
 }
 
-function renderHistory(skill, cardIdx) {
-  if (!skill.versions.length) return '<p>No versions</p>';
-  let html = '<div class="version-list">';
-  for (let v = skill.versions.length - 1; v >= 0; v--) {
-    const ver = skill.versions[v];
-    const isCurrent = ver.current ? 'current' : '';
-    const badge = ver.current ? 'current' : '';
-    html += `<div class="version-item ${isCurrent}" onclick="viewVersion(${cardIdx}, ${v})">
-      <span class="version-badge ${badge}">v${ver.version}</span>
-      <span>${ver.current ? 'Current' : 'Archived'}</span>
-      ${v > 0 ? `<button class="btn" style="margin-left:auto;font-size:11px" onclick="event.stopPropagation();showDiff(${cardIdx},${v-1},${v})">Diff with v${skill.versions[v-1].version}</button>` : ''}
-    </div>`;
-  }
-  html += '</div><div id="diff-area-' + cardIdx + '"></div>';
-  return html;
-}
+let modalSkill = null;
+let diffMode = 'side';
 
 function toggleHistory(idx) {
   const el = document.getElementById('history-' + idx);
@@ -413,42 +441,149 @@ function toggleHistory(idx) {
 
 function viewSkill(idx) {
   const skills = getFilteredSkills();
-  const s = skills[idx];
+  modalSkill = skills[idx];
+  const s = modalSkill;
   const current = s.versions.find(v => v.current);
   if (!current) return;
-  document.getElementById('modalTitle').textContent = s.name + ' (v' + s.current_version + ')';
-  document.getElementById('modalBody').innerHTML = renderMd(current.content);
+  document.getElementById('modalTitle').textContent = s.name;
+  const hasManyVersions = s.versions.length > 1;
+  let tabs = `<div class="modal-tab active" onclick="switchTab('content')">Content (v${s.current_version})</div>`;
+  if (hasManyVersions) {
+    tabs += `<div class="modal-tab" onclick="switchTab('history')">History (${s.versions.length})</div>`;
+    tabs += `<div class="modal-tab" onclick="switchTab('compare')">Compare</div>`;
+  }
+  document.getElementById('modalTabs').innerHTML = tabs;
+  document.getElementById('tabContent').className = 'tab-content active md-content';
+  document.getElementById('tabContent').innerHTML = renderMd(current.content);
+  if (hasManyVersions) {
+    renderTimeline();
+    renderCompare();
+  }
+  document.getElementById('tabHistory').className = 'tab-content';
+  document.getElementById('tabCompare').className = 'tab-content';
   document.getElementById('modal').classList.add('open');
 }
 
+function switchTab(name) {
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  event.target.classList.add('active');
+  const map = {content: 'tabContent', history: 'tabHistory', compare: 'tabCompare'};
+  const el = document.getElementById(map[name]);
+  if (el) { el.classList.add('active'); if (name === 'history') el.classList.add('md-content'); }
+}
+
+function renderTimeline() {
+  const s = modalSkill;
+  let html = '<div class="timeline">';
+  for (let i = s.versions.length - 1; i >= 0; i--) {
+    const v = s.versions[i];
+    const isCurrent = v.current ? 'current' : '';
+    html += `<div class="timeline-item" onclick="showVersionInModal(${i})">
+      <div class="timeline-dot-col"><div class="timeline-dot ${isCurrent}"></div><div class="timeline-line"></div></div>
+      <div class="timeline-info">
+        <div class="timeline-version">Version ${v.version} ${v.current ? '(current)' : ''}</div>
+        <div class="timeline-label">${v.current ? 'Latest' : 'Archived'} — click to view</div>
+      </div>
+    </div>`;
+  }
+  html += '</div>';
+  document.getElementById('tabHistory').innerHTML = html;
+}
+
+function showVersionInModal(vIdx) {
+  const v = modalSkill.versions[vIdx];
+  document.getElementById('tabContent').innerHTML = renderMd(v.content);
+  document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  const contentTab = document.querySelector('.modal-tab');
+  contentTab.classList.add('active');
+  contentTab.textContent = 'Content (v' + v.version + ')';
+  document.getElementById('tabContent').classList.add('active');
+}
+
+function renderCompare() {
+  const s = modalSkill;
+  const vers = s.versions;
+  let optionsA = '', optionsB = '';
+  for (let i = 0; i < vers.length; i++) {
+    const sel = i === Math.max(0, vers.length - 2) ? 'selected' : '';
+    optionsA += `<option value="${i}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
+  }
+  for (let i = 0; i < vers.length; i++) {
+    const sel = i === vers.length - 1 ? 'selected' : '';
+    optionsB += `<option value="${i}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
+  }
+  let html = `<div class="compare-controls">
+    <label>From</label><select id="diffA" onchange="updateDiff()">${optionsA}</select>
+    <label>To</label><select id="diffB" onchange="updateDiff()">${optionsB}</select>
+    <div class="compare-mode">
+      <button class="${diffMode==='side'?'active':''}" onclick="setDiffMode('side')">Side by side</button>
+      <button class="${diffMode==='inline'?'active':''}" onclick="setDiffMode('inline')">Inline</button>
+    </div>
+  </div><div id="diffOutput"></div>`;
+  document.getElementById('tabCompare').innerHTML = html;
+  updateDiff();
+}
+
+function setDiffMode(mode) {
+  diffMode = mode;
+  document.querySelectorAll('.compare-mode button').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  updateDiff();
+}
+
+function updateDiff() {
+  const aIdx = parseInt(document.getElementById('diffA').value);
+  const bIdx = parseInt(document.getElementById('diffB').value);
+  const a = modalSkill.versions[aIdx].content || '';
+  const b = modalSkill.versions[bIdx].content || '';
+  const diff = lineDiff(a, b);
+  const vA = modalSkill.versions[aIdx].version;
+  const vB = modalSkill.versions[bIdx].version;
+  document.getElementById('diffOutput').innerHTML = diffMode === 'side' ? renderSideDiff(diff, vA, vB) : renderInlineDiff(diff, vA, vB);
+}
+
+function renderSideDiff(diff, vA, vB) {
+  let leftLines = [], rightLines = [];
+  let lnA = 1, lnB = 1;
+  for (const d of diff) {
+    if (d.type === 'ctx') {
+      leftLines.push({ln: lnA++, text: d.text, cls: ''});
+      rightLines.push({ln: lnB++, text: d.text, cls: ''});
+    } else if (d.type === 'rm') {
+      leftLines.push({ln: lnA++, text: d.text, cls: 'diff-rm'});
+      rightLines.push({ln: '', text: '', cls: 'diff-empty'});
+    } else {
+      leftLines.push({ln: '', text: '', cls: 'diff-empty'});
+      rightLines.push({ln: lnB++, text: d.text, cls: 'diff-add'});
+    }
+  }
+  const renderPane = (lines) => lines.map(l => `<div class="diff-pane-line ${l.cls}"><span class="ln">${l.ln}</span><span>${esc(l.text)}</span></div>`).join('');
+  return `<div class="diff-side">
+    <div class="diff-pane"><div class="diff-pane-header">v${vA}</div>${renderPane(leftLines)}</div>
+    <div class="diff-pane"><div class="diff-pane-header">v${vB}</div>${renderPane(rightLines)}</div>
+  </div>`;
+}
+
+function renderInlineDiff(diff, vA, vB) {
+  let html = `<div class="diff-view"><div class="diff-header">v${vA} → v${vB}</div>`;
+  for (const d of diff) {
+    if (d.type === 'add') html += `<div class="diff-line diff-add">+ ${esc(d.text)}</div>`;
+    else if (d.type === 'rm') html += `<div class="diff-line diff-rm">- ${esc(d.text)}</div>`;
+    else html += `<div class="diff-line diff-ctx">  ${esc(d.text)}</div>`;
+  }
+  return html + '</div>';
+}
+
 function viewVersion(cardIdx, vIdx) {
-  const skills = getFilteredSkills();
-  const s = skills[cardIdx];
-  const ver = s.versions[vIdx];
-  document.getElementById('modalTitle').textContent = s.name + ' (v' + ver.version + ')';
-  document.getElementById('modalBody').innerHTML = renderMd(ver.content);
-  document.getElementById('modal').classList.add('open');
+  viewSkill(cardIdx);
+  showVersionInModal(vIdx);
 }
 
 function closeModal() {
   document.getElementById('modal').classList.remove('open');
-}
-
-function showDiff(cardIdx, aIdx, bIdx) {
-  const skills = getFilteredSkills();
-  const s = skills[cardIdx];
-  const a = s.versions[aIdx].content;
-  const b = s.versions[bIdx].content;
-  const diff = lineDiff(a, b);
-  const area = document.getElementById('diff-area-' + cardIdx);
-  let html = `<div class="diff-view"><div class="diff-header">v${s.versions[aIdx].version} → v${s.versions[bIdx].version}</div>`;
-  for (const line of diff) {
-    if (line.type === 'add') html += `<div class="diff-line diff-add">+ ${esc(line.text)}</div>`;
-    else if (line.type === 'rm') html += `<div class="diff-line diff-rm">- ${esc(line.text)}</div>`;
-    else html += `<div class="diff-line diff-ctx">  ${esc(line.text)}</div>`;
-  }
-  html += '</div>';
-  area.innerHTML = html;
+  modalSkill = null;
 }
 
 // --- Markdown renderer (no deps) ---
