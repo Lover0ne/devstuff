@@ -130,7 +130,12 @@ def cmd_registry_list(project_only: bool = False) -> dict:
     return {
         "skills": entries,
         "count": len(entries),
-        "instructions": "Compare each skill against the work done. For matches, use skill-write --prepare with action=new_version. For uncovered work, use action=create. Always include description field.",
+        "instructions": (
+            "Compare each skill against the work done. "
+            "For matches: bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh\" skill-write --prepare '{\"action\":\"new_version\",\"id\":\"SKILL_ID\",\"change_summary\":\"WHAT_CHANGED\"}' "
+            "For uncovered work: bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh\" skill-write --prepare '{\"action\":\"create\",\"name\":\"SKILL_NAME\",\"description\":\"Use when TRIGGER\",\"tags\":[\"tag1\"]}' "
+            "Always include description field. Then follow the instructions in the response."
+        ),
     }
 
 
