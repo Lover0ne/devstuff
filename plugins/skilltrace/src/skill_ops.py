@@ -12,6 +12,8 @@ from pathlib import Path
 from src.shared import skills_dir, skilltrace_dir, project_skilltrace_dir, error_receipt, find_or_create_project_id
 from src.registry import load_registry, _save_registry
 
+_BODY_MARKER = "<!-- SKILL_BODY -->"
+
 
 def _versions_dir() -> Path:
     return project_skilltrace_dir() / "versions"
@@ -56,13 +58,18 @@ def _get_registry_entry(skill_id: str) -> dict | None:
     return None
 
 
+def _scaffold_content(name: str, description: str) -> str:
+    desc = description.replace('"', '\\"') if description else "Use when [trigger]"
+    return f'---\nname: {_slugify(name)}\ndescription: "{desc}"\n---\n\n{_BODY_MARKER}\n'
+
+
 def _archive_current(skill_id: str, version: int) -> Path | None:
     src = _skill_path(skill_id)
     if not src.exists():
         return None
     dst = _version_path(skill_id, version)
     dst.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copy2(src, dst)
+    src.rename(dst)
     return dst
 
 
@@ -94,7 +101,10 @@ def prepare_create(metadata: dict) -> dict:
     skill_dir = _skill_dir(skill_id)
     skill_dir.mkdir(parents=True, exist_ok=True)
     path = _skill_path(skill_id)
-    path.write_text("", encoding="utf-8")
+    path.write_text(
+        _scaffold_content(name, metadata.get("description", "")),
+        encoding="utf-8",
+    )
 
     entry_data = {
         **metadata,
@@ -124,7 +134,13 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
     archived = _archive_current(skill_id, current_version)
 
     path = _skill_path(skill_id)
-    path.write_text("", encoding="utf-8")
+    path.write_text(
+        _scaffold_content(
+            existing.get("name", skill_id),
+            existing.get("description", ""),
+        ),
+        encoding="utf-8",
+    )
 
     new_version = current_version + 1
     update_data = {}

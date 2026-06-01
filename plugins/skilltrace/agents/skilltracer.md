@@ -67,20 +67,30 @@ bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"new_version","id":"existing-skill-id","change_summary":"Brief description of what changed"}'
 ```
 
-Both return JSON with `write_to` — the absolute path where you must write the SKILL.md content.
+Both return JSON with `write_to` — the absolute path to the SKILL.md file.
 
-### Step 5: Write SKILL.md (for each skill)
-
-Write the skill content to the path from `write_to`. Each skill gets its own complete SKILL.md — include only the portions of the work relevant to that specific skill.
-
-Use the template structure:
+The file already contains the frontmatter (name, description) written by the tool — **do NOT modify the frontmatter**. The file looks like:
 
 ```markdown
 ---
 name: kebab-case-name
-description: "Use when [trigger/situation]. [What it does]."
+description: "Use when [trigger]"
 ---
 
+<!-- SKILL_BODY -->
+```
+
+### Step 5: Write skill body (for each skill)
+
+Use the **Edit** tool to replace the `<!-- SKILL_BODY -->` marker with the skill content. First **Read** the file at `write_to`, then **Edit** with:
+- `old_string`: `<!-- SKILL_BODY -->`
+- `new_string`: the full body content (everything below the frontmatter)
+
+**NEVER use Write** — it would overwrite the frontmatter. Always use Edit on the marker.
+
+Body template:
+
+```markdown
 # Skill Name
 
 ## What

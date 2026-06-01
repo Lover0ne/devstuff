@@ -38,7 +38,9 @@ class TestPrepareCreate:
         assert result["skill_id"] == "jwt-auth"
         path = Path(result["write_to"])
         assert path.exists()
-        assert path.read_text() == ""
+        content = path.read_text()
+        assert "<!-- SKILL_BODY -->" in content
+        assert "name: jwt-auth" in content
 
     def test_registers_with_project_id(self, skill_env):
         from src.skill_ops import prepare_create

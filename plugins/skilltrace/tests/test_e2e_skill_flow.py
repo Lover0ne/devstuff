@@ -70,7 +70,7 @@ def test_create_then_new_version_via_cli(full_env):
     archived = Path(r2["archived"])
     assert archived.exists()
     assert "JWT setup steps" in archived.read_text(encoding="utf-8")
-    assert Path(r2["write_to"]).read_text(encoding="utf-8") == ""
+    assert "<!-- SKILL_BODY -->" in Path(r2["write_to"]).read_text(encoding="utf-8")
 
 
 def test_project_filtered_list(full_env, monkeypatch):

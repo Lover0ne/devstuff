@@ -191,7 +191,7 @@ class TestSkillCreationAndVersioning:
         archived = Path(r2["archived"])
         assert archived.exists()
         assert "Auth v1" in archived.read_text(encoding="utf-8")
-        assert Path(r2["write_to"]).read_text(encoding="utf-8") == ""
+        assert "<!-- SKILL_BODY -->" in Path(r2["write_to"]).read_text(encoding="utf-8")
 
     def test_three_versions_all_archived(self, plugin_env, monkeypatch):
         from src.cli import cmd_setup, cmd_skill_write, cmd_registry_list
