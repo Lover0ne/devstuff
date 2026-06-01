@@ -4,17 +4,17 @@
 
 <p align="center"><strong>Turn any skill into a reusable template. Instantly.</strong></p>
 
-Copycat is a Claude Code plugin that takes any skill and strips out every project-specific value — paths, names, URLs, keys, emails — replacing them with smart `{{placeholders}}`. The result is a portable template anyone can use.
+Copycat is a Claude Code plugin that takes any skill and strips out every project-specific value (paths, names, URLs, keys, emails, you name it) and replaces them with smart `{{placeholders}}`. The result is a portable template anyone can use.
 
 ---
 
 ## The Problem
 
-Skills are powerful, but they're born specific. A skill that deploys *your* app to *your* server with *your* API keys is useless to anyone else — and risky to share. Manually sanitizing a skill means reading every line, spotting every hardcoded value, and replacing them consistently. Miss one, and you've leaked a path, a name, or worse.
+Skills are powerful, but they're born specific. A skill that deploys *your* app to *your* server with *your* API keys is useless to anyone else, and honestly risky to share. Manually sanitizing a skill means reading every line, spotting every hardcoded value, and replacing them consistently. Miss one and you've leaked a path, a name, or worse.
 
 ## The Solution
 
-One command. Copycat reads the skill, identifies every project-specific value, and replaces them with descriptive placeholders. You choose the output format: a sanitized template for manual use, or a full questionnaire that collects inputs automatically.
+One command. Copycat reads the skill, identifies every project-specific value, and replaces them with descriptive placeholders. You pick the output format: a sanitized template for manual use, or a full questionnaire that collects inputs automatically.
 
 ## Install
 
@@ -56,10 +56,10 @@ Produces a `my-deploy-skill-copycat` skill where `/Users/me/myapp` becomes `{{pr
 
 ## Placeholder Rules
 
-- **Same value, same role** — single placeholder, asked once
-- **Same type, different role** — separate placeholders (e.g. `{{email_from}}` vs `{{email_to}}`)
-- **Nested composition** — `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`
-- **Never anonymized** — tool names, frameworks, standard commands, language keywords
+- **Same value, same role:** single placeholder, asked once.
+- **Same type, different role:** separate placeholders (e.g. `{{email_from}}` vs `{{email_to}}`).
+- **Nested composition:** `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`.
+- **Never anonymized:** tool names, frameworks, standard commands, and language keywords stay as-is.
 
 ## Project Structure
 

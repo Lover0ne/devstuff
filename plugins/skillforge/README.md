@@ -4,17 +4,17 @@
 
 <p align="center"><strong>Forge utility skills from any project. Automatically.</strong></p>
 
-Skillforge is a Claude Code plugin that analyzes your project structure, identifies repetitive operations, and generates a complete set of utility skills — all in parallel via an agent swarm.
+Skillforge is a Claude Code plugin that analyzes your project structure, identifies repetitive operations, and generates a complete set of utility skills. It does all of this in parallel using an agent swarm.
 
 ---
 
 ## The Problem
 
-Every project has operations you repeat: deploying, starting services, managing environments, running migrations, cleaning up code. These patterns live in scattered config files, READMEs, and tribal knowledge. When you need them, you re-discover them from scratch.
+Every project has operations you do over and over: deploying, starting services, managing environments, running migrations, cleaning up code. These patterns end up scattered across config files, READMEs, and team knowledge that never gets written down. When you need them again, you figure them out from scratch.
 
 ## The Solution
 
-One command. Skillforge reads your entire project, identifies every automatable operation, and spawns a swarm of agents — each writing one focused, reproducible skill. In minutes, you have a complete utility skill library tailored to your specific stack.
+Run a single command and Skillforge reads your entire project, identifies every automatable operation, and spawns a swarm of agents that each write one focused, reproducible skill. Within minutes you get a full utility skill library tailored to your stack.
 
 ## Install
 
@@ -28,9 +28,9 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 ## Usage
 
 ```
-/skillforge:launch    — Analyze project and generate all utility skills
-/skillforge:skills    — List generated skills (filterable by project)
-/skillforge:status    — Show skill counts and project info
+/skillforge:launch    Analyze project and generate all utility skills
+/skillforge:skills    List generated skills (filterable by project)
+/skillforge:status    Show skill counts and project info
 ```
 
 ## How It Works
@@ -39,13 +39,13 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 |-------|-------------|
 | **Analyze** | Python scanner reads your project: file tree, configs, manifests, scripts |
 | **Identify** | AI analyzes the data and identifies every potential utility skill |
-| **Swarm** | One background agent per skill — all run in parallel |
+| **Swarm** | One background agent per skill, all running in parallel |
 | **Write** | Each agent produces a complete, reproducible SKILL.md |
 | **Version** | Re-running `/skillforge:launch` updates existing skills, archives old versions |
 
 ## What It Generates
 
-Skillforge doesn't work from a fixed list. It analyzes YOUR project and identifies what makes sense. Common examples:
+Skillforge doesn't work from a fixed list. It looks at your actual project and figures out what makes sense. Some common examples:
 
 - Deploy automation (per environment)
 - Environment setup and switching
@@ -96,4 +96,4 @@ MIT
 
 ---
 
-*One command. Every utility skill your project needs.*
+*One command, every utility skill your project needs.*
