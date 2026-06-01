@@ -1,13 +1,28 @@
-# Copycat
+<h1 align="center">Copycat</h1>
 
-A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin that turns any skill into a reusable template.
+<p align="center"><strong>Designed for <a href="https://docs.anthropic.com/en/docs/claude-code">Claude Code</a></strong></p>
 
-Point it at a skill, and Copycat replaces every project-specific value — paths, names, URLs, keys, emails — with smart `{{placeholders}}`. You choose the output format: sanitized-only or full questionnaire.
+<p align="center"><strong>Turn any skill into a reusable template. Instantly.</strong></p>
+
+Copycat is a Claude Code plugin that takes any skill and strips out every project-specific value — paths, names, URLs, keys, emails — replacing them with smart `{{placeholders}}`. The result is a portable template anyone can use.
+
+---
+
+## The Problem
+
+Skills are powerful, but they're born specific. A skill that deploys *your* app to *your* server with *your* API keys is useless to anyone else — and risky to share. Manually sanitizing a skill means reading every line, spotting every hardcoded value, and replacing them consistently. Miss one, and you've leaked a path, a name, or worse.
+
+## The Solution
+
+One command. Copycat reads the skill, identifies every project-specific value, and replaces them with descriptive placeholders. You choose the output format: a sanitized template for manual use, or a full questionnaire that collects inputs automatically.
 
 ## Install
 
-```
-/install-plugin https://github.com/Lover0ne/copycat
+Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
+
+```bash
+/plugin marketplace add Lover0ne/devstuff
+/plugin install copycat@devstuff
 ```
 
 ## Usage
@@ -19,13 +34,17 @@ Point it at a skill, and Copycat replaces every project-specific value — paths
 Copycat will:
 
 1. **Ask** which mode you want: **sanitize only** or **questionnaire**
-2. **Find** the skill in `~/.claude/skills/` or installed plugins
+2. **Find** the skill in your project or installed plugins
 3. **Analyze** it for project-specific values (paths, names, URLs, secrets, etc.)
 4. **Replace** each value with a descriptive `{{placeholder}}`
-5. **Output** based on your chosen mode:
-   - **Sanitize only** — raw `{{placeholders}}` with a reference table. Good for sharing, auditing, or manual editing.
-   - **Questionnaire** — adds a setup section that collects every value via `AskUserQuestion` before execution. Good for reusable templates others can invoke directly.
-6. **Save** the template as `<skill-name>-copycat`
+5. **Save** the template as `<skill-name>-copycat`
+
+### Modes
+
+| Mode | What you get | Best for |
+|------|-------------|----------|
+| **Sanitize only** | Raw `{{placeholders}}` with a reference table | Sharing, auditing, manual editing |
+| **Questionnaire** | Setup section that collects values via `AskUserQuestion` | Reusable templates others invoke directly |
 
 ### Example
 
@@ -33,15 +52,35 @@ Copycat will:
 /copycat:clone my-deploy-skill
 ```
 
-Produces a `my-deploy-skill-copycat` skill where hardcoded values like `/Users/me/myapp` become `{{project_dir}}` and `acme-api.com` becomes `{{api_domain}}`.
+Produces a `my-deploy-skill-copycat` skill where `/Users/me/myapp` becomes `{{project_dir}}` and `acme-api.com` becomes `{{api_domain}}`.
 
-## Placeholder rules
+## Placeholder Rules
 
-- **Same value, same role** → single placeholder, asked once
-- **Same type, different role** → separate placeholders (e.g. `{{email_from}}` vs `{{email_to}}`)
-- **Nested composition** → `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`
-- **Never anonymized** → tool names, frameworks, standard commands, language keywords
+- **Same value, same role** — single placeholder, asked once
+- **Same type, different role** — separate placeholders (e.g. `{{email_from}}` vs `{{email_to}}`)
+- **Nested composition** — `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`
+- **Never anonymized** — tool names, frameworks, standard commands, language keywords
+
+## Project Structure
+
+```
+copycat/
+├── .claude-plugin/
+│   └── plugin.json       # Plugin manifest
+├── commands/
+│   └── clone.md          # /copycat:clone command
+└── skills/
+    └── .gitkeep
+```
+
+## Requirements
+
+- [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
 
 ## License
 
 MIT
+
+---
+
+*Share skills without sharing secrets.*

@@ -18,8 +18,11 @@ One command. Skillforge reads your entire project, identifies every automatable 
 
 ## Install
 
+Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
+
 ```bash
-claude plugin add /path/to/skillforge
+/plugin marketplace add Lover0ne/devstuff
+/plugin install skillforge@devstuff
 ```
 
 ## Usage
@@ -52,11 +55,35 @@ Skillforge doesn't work from a fixed list. It analyzes YOUR project and identifi
 - Comment cleanup across source files
 - Repository setup and onboarding
 - Architecture and flow documentation
-- Test execution
+- Test execution and coverage
 - Build pipelines
 - Lint and formatting
 
 ...and anything else specific to your project.
+
+## Project Structure
+
+```
+skillforge/
+├── .claude-plugin/
+│   └── plugin.json        # Plugin manifest
+├── hooks/
+│   ├── hooks.json         # Hook definitions
+│   └── wrapper.sh         # Cross-platform dispatcher
+├── src/
+│   ├── cli.py             # CLI entry point
+│   ├── config.py          # Configuration
+│   ├── registry.py        # Skill registry CRUD
+│   ├── shared.py          # Shared utilities
+│   └── skill_ops.py       # Skill creation and versioning
+├── agents/
+│   └── skill-writer.md    # Background agent that writes individual skills
+├── commands/              # Slash commands (launch, status, skills)
+├── skills/
+│   └── .gitkeep
+└── templates/
+    └── SKILL.md           # Template for generated skills
+```
 
 ## Requirements
 
@@ -66,3 +93,7 @@ Skillforge doesn't work from a fixed list. It analyzes YOUR project and identifi
 ## License
 
 MIT
+
+---
+
+*One command. Every utility skill your project needs.*

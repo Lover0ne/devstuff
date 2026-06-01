@@ -51,8 +51,11 @@ You work. It learns. Your effort compounds.
 
 ## Install
 
+Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
+
 ```bash
-claude plugin add /path/to/skilltrace
+/plugin marketplace add Lover0ne/devstuff
+/plugin install skilltrace@devstuff
 ```
 
 That's it. Skilltrace activates on your next session. On first run, it introduces itself and asks if you want to enable tracking for the current project.
