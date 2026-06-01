@@ -64,7 +64,7 @@ That's it. Skilltrace activates on your next session. On first run, it introduce
 | Session starts | Skilltrace activates silently via hook |
 | You work normally | Code, debug, build, deploy — no interruptions |
 | After each prompt | Background agent evaluates if meaningful work was completed |
-| Skill-worthy task detected | Skill generated automatically, stored in `~/.claude/skills/` |
+| Skill-worthy task detected | Skill generated automatically, stored in `.claude/skills/` |
 | Session ends | Final check — nothing missed |
 
 No configuration. No context pollution. No extra prompts. Just work.
@@ -84,7 +84,11 @@ No configuration. No context pollution. No extra prompts. Just work.
 
 | Command | What it does |
 |---------|-------------|
+| `/skilltrace:init` | Enable Skilltrace for current project |
+| `/skilltrace:skip` | Decline Skilltrace for current project |
 | `/skilltrace:skills` | List all skills with descriptions, versions, and project info |
+| `/skilltrace:overview` | Show skills across all projects |
+| `/skilltrace:history` | Show version history of a specific skill |
 | `/skilltrace:status` | Show tracking status and skill counts |
 | `/skilltrace:pause` | Pause activity tracking |
 | `/skilltrace:resume` | Resume activity tracking |
@@ -97,18 +101,19 @@ skilltrace/
 ├── .claude-plugin/
 │   └── plugin.json          # Plugin manifest
 ├── hooks/
-│   ├── hooks.json           # Hook definitions (SessionStart, UserPromptSubmit, SessionEnd)
+│   ├── hooks.json           # Hook definitions (SessionStart, UserPromptSubmit, PreToolUse, SessionEnd)
+│   ├── gate.sh              # PreToolUse gate (init check + task boundary)
 │   └── wrapper.sh           # Cross-platform dispatcher
 ├── src/
-│   ├── cli.py               # CLI entry point (13 commands)
+│   ├── cli.py               # CLI entry point
 │   ├── config.py            # Enable/disable, configuration
 │   ├── registry.py          # Skill registry CRUD
 │   ├── shared.py            # Atomic file ops, project ID management
 │   ├── skill_ops.py         # Skill creation, versioning, archiving
 │   └── transcript.py        # Session transcript scraper
 ├── agents/
-│   └── skilltracer.md     # Background agent that evaluates and generates skills
-├── commands/                 # Slash commands (pause, resume, status, skills, reindex)
+│   └── skilltracer.md       # Background agent that evaluates and generates skills
+├── commands/                 # Slash commands (init, skip, status, skills, overview, history, pause, resume, reindex)
 └── skills/
     └── skilltrace-manage/    # Built-in skill for managing generated skills
 ```

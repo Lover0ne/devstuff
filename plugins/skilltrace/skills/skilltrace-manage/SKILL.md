@@ -22,13 +22,13 @@ Users can also run `/skilltrace:skills` for a formatted view.
 Parse skills output and filter by name, tags, or description matching the user's query.
 
 ### Inspect a skill
-Read the SKILL.md file at `~/.claude/skills/{skill-id}/SKILL.md`.
+Read the SKILL.md file at `.claude/skills/{skill-id}/SKILL.md` in the current project.
 
 ### Remove a skill
+Delete the `.claude/skills/{skill-id}/` directory in the project, then remove from registry:
 ```bash
 bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" registry --remove {skill-id}
 ```
-Then delete `~/.claude/skills/{skill-id}/` directory.
 
 ### Replay a skill
 Read the SKILL.md and follow its steps in the current project context.
