@@ -120,6 +120,7 @@ def prepare_create(metadata: dict) -> dict:
         "skill_id": skill_id,
         "write_to": str(path),
         "version": 1,
+        "instructions": "Read the file, then use Edit to replace <!-- SKILL_BODY --> with body content. Do NOT use Write. Do NOT modify frontmatter.",
     }
 
 
@@ -154,6 +155,7 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
         "skill_id": skill_id,
         "write_to": str(path),
         "version": new_version,
+        "instructions": "Read the file, then use Edit to replace <!-- SKILL_BODY --> with body content. Do NOT use Write. Do NOT modify frontmatter.",
     }
     if archived:
         result["archived"] = str(archived)
