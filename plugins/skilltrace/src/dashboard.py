@@ -273,7 +273,7 @@ a:hover { text-decoration: underline; }
       <h2><span>/</span>skilltrace</h2>
       <button class="theme-btn" onclick="toggleTheme()" title="Toggle theme">&#9681;</button>
     </div>
-    <div class="sidebar-link"><a href="https://www-skilltrace.vercel.app/" target="_blank">skilltrace.vercel.app</a></div>
+    <div class="sidebar-link"><a href="https://www-skilltrace.vercel.app/" target="_blank">&#127760; Official Website</a></div>
   </div>
   <div class="project-list" id="projectList"></div>
   <div class="sidebar-footer" id="generated"></div>
