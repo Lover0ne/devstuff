@@ -425,7 +425,6 @@ function renderSkills() {
       ${tags ? `<div class="skill-tags">${tags}</div>` : ''}
       <div class="skill-actions">
         <button class="btn btn-primary" onclick="viewSkill(${i})">View</button>
-        ${s.versions.length > 1 ? `<button class="btn" onclick="viewSkill(${i});switchTab('compare')">Compare</button>` : ''}
       </div>
     </div>`;
   }).join('');
