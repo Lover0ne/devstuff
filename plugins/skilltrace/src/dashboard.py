@@ -516,6 +516,7 @@ function renderCompare() {
   }
   let html = `<div class="compare-controls">
     <label>From</label><select id="diffA" onchange="updateDiff()">${optionsA}</select>
+    <button class="btn" onclick="swapDiff()" title="Swap versions" style="padding:5px 10px;font-size:14px">&#8646;</button>
     <label>To</label><select id="diffB" onchange="updateDiff()">${optionsB}</select>
     <div class="compare-mode">
       <button class="${diffMode==='side'?'active':''}" onclick="setDiffMode('side')">Side by side</button>
@@ -523,6 +524,15 @@ function renderCompare() {
     </div>
   </div><div id="diffOutput"></div>`;
   document.getElementById('tabCompare').innerHTML = html;
+  updateDiff();
+}
+
+function swapDiff() {
+  const a = document.getElementById('diffA');
+  const b = document.getElementById('diffB');
+  const tmp = a.value;
+  a.value = b.value;
+  b.value = tmp;
   updateDiff();
 }
 
