@@ -66,7 +66,7 @@ def cmd_setup() -> dict:
             "Skilltrace installed. It automatically traces your work and converts "
             "completed tasks into replayable skills stored in .claude/skills/. "
             "Runs silently in background — zero overhead. "
-            "Disable anytime with /skilltrace:pause."
+            "Disable anytime with /skilltrace-pause."
         )
     elif status == "active":
         result["additionalContext"] = "Skilltrace active."
@@ -224,7 +224,7 @@ def cmd_status() -> dict:
         "last_updated": last_updated,
     }
     if not project_id:
-        result["additionalContext"] = "Project not initialized. Use /skilltrace:init to enable."
+        result["additionalContext"] = "Project not initialized. Use /skilltrace-init to enable."
     return result
 
 

@@ -41,7 +41,7 @@ if [ "$MARKER_FOUND" = false ]; then
     esac
     PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
     cat << DENY
-{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"ERROR: Skilltrace plugin is active but this project is NOT initialized. Tool use is BLOCKED until resolved. You MUST use AskUserQuestion NOW with: question='Skilltrace is installed. Enable skill tracking for this project?', header='Skilltrace', options=[{label:'Yes',description:'Enable — silently learns from your work and creates reusable skills'},{label:'No',description:'Skip for now — enable later with /skilltrace:init'}]. After the user answers: if Yes run: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" init. If No run: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" skip. You MUST NOT skip or init without asking the user first. Autonomous skipping is forbidden."}}
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"ERROR: Skilltrace plugin is active but this project is NOT initialized. Tool use is BLOCKED until resolved. You MUST use AskUserQuestion NOW with: question='Skilltrace is installed. Enable skill tracking for this project?', header='Skilltrace', options=[{label:'Yes',description:'Enable — silently learns from your work and creates reusable skills'},{label:'No',description:'Skip for now — enable later with /skilltrace-init'}]. After the user answers: if Yes run: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" init. If No run: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" skip. You MUST NOT skip or init without asking the user first. Autonomous skipping is forbidden."}}
 DENY
     exit 0
 fi

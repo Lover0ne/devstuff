@@ -80,23 +80,23 @@ No configuration. No context pollution. No extra prompts. Just work.
 - **Specific skills.** Not "how to set up auth" but "setting up NextJS auth with Clerk and Drizzle ORM".
 - **Self-contained.** Every skill is a complete recipe, replayable with zero prior context.
 - **Skill inventory.** Browse, search, and inspect all skills across projects.
-- **Pause/resume.** Disable tracking anytime with `/skilltrace:pause`.
+- **Pause/resume.** Disable tracking anytime with `/skilltrace-pause`.
 - **Cross-platform.** Works on macOS, Linux, and Windows.
 
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/skilltrace:init` | Enable Skilltrace for current project |
-| `/skilltrace:skip` | Decline Skilltrace for current project |
-| `/skilltrace:skills` | List all skills with descriptions, versions, and project info |
-| `/skilltrace:overview` | Show skills across all projects |
-| `/skilltrace:history` | Show version history of a specific skill |
-| `/skilltrace:status` | Show tracking status and skill counts |
-| `/skilltrace:pause` | Pause activity tracking |
-| `/skilltrace:resume` | Resume activity tracking |
-| `/skilltrace:dashboard` | Open the skill dashboard |
-| `/skilltrace:reindex` | Rebuild skill registry from files on disk |
+| `/skilltrace-init` | Enable Skilltrace for current project |
+| `/skilltrace-skip` | Decline Skilltrace for current project |
+| `/skilltrace-skills` | List all skills with descriptions, versions, and project info |
+| `/skilltrace-overview` | Show skills across all projects |
+| `/skilltrace-history` | Show version history of a specific skill |
+| `/skilltrace-status` | Show tracking status and skill counts |
+| `/skilltrace-pause` | Pause activity tracking |
+| `/skilltrace-resume` | Resume activity tracking |
+| `/skilltrace-dashboard` | Open the skill dashboard |
+| `/skilltrace-reindex` | Rebuild skill registry from files on disk |
 
 ## Project Structure
 
