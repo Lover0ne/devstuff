@@ -5,26 +5,22 @@ description: "Use when {description}"
 
 # {name}
 
-## What
+## Overview
 
-One paragraph: what this skill does and what it produces.
+Core principle in 1-2 sentences.
 
-## Why
+## When to Use
 
-One paragraph: the problem it solves or the context that motivated it.
+Bullet list of symptoms and use cases. When NOT to use.
 
-## How
+## Quick Reference
 
-Step-by-step instructions to reproduce this work.
+Table or bullets for scanning key values, configs, operations.
 
-## Files
+## Implementation
 
-List of files created or modified with descriptions.
+Step-by-step instructions with exact commands, code, and configs.
 
-## Tools Used
+## Common Mistakes
 
-List of tools/commands used.
-
-## Tags
-
-Comma-separated tags for discovery.
+What goes wrong and how to fix it.

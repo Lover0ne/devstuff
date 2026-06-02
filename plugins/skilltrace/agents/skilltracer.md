@@ -48,7 +48,7 @@ Compare work against ALL skills from Step 1:
 
 **For create:**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name","description":"Use when [trigger]. [What it does].","tags":["tag1","tag2"]}'
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name","description":"Use when [triggering conditions only, no workflow summary]","tags":["tag1","tag2"]}'
 ```
 
 **For new_version:**
@@ -60,55 +60,63 @@ Follow the `instructions` field in the response.
 
 ### Step 5: Write skill body
 
-Follow the `instructions` from Step 4 to write the body content. Use the body template below.
+Follow the `instructions` from Step 4 to write the body content. Structure the body as a **reference guide**, not a narrative.
 
-Body template:
+Body structure:
 
 ```markdown
 # Skill Name
 
-## What
-One paragraph: what this skill does and what it produces.
+## Overview
+Core principle in 1-2 sentences. What this is and what it produces.
 
-## Why
-One paragraph: the problem it solves or the context that motivated it.
+## When to Use
+Bullet list of symptoms and use cases. Include when NOT to use.
 
-## How
-Step-by-step numbered instructions with commands and relative file paths.
+## Quick Reference
+Table or bullets for scanning common operations, key values, configs.
 
-## Files
-- `path/to/file.ext` — description of role
+## Implementation
+Step-by-step instructions with exact commands, code patterns, and configs.
+Use inline code for simple patterns. Include all concrete values (numbers,
+formulas, config keys, file contents) needed to reproduce the work exactly.
 
-## Tools Used
-- Tool1 — what for
-
-## Tags
-tag1, tag2, tag3
+## Common Mistakes
+What goes wrong and how to fix it.
 ```
+
+No `## Tags` section in body. Tags go only in frontmatter (handled by the tool).
+No `## Files` or `## Tools Used` sections. Weave file references into Implementation.
+No `## What` / `## Why` narrative sections.
 
 ## Writing Rules
 
-- **Always use relative paths** — never absolute, never usernames or machine-specific directories
-- **Never hardcode repo names, branch names, or account names** — use generic placeholders
-- **NEVER include secrets, API keys, tokens, passwords, or credentials** — use `$API_KEY`, `<your-token>`
-- **Never include environment variable values** — reference names only (`$ENV_VAR`)
-- Steps must be reproducible — someone with zero context can replay the work
-- No narratives ("we did X"). Technique/pattern/reference only
+- **Reference guide, not narrative.** Write like documentation someone scans, not a story of what happened
+- **Include concrete values.** Exact numbers, formulas, configs, file contents. A skill missing specific values (prices, damage formulas, color codes, port numbers) is incomplete
+- **Always use relative paths.** Never absolute, never usernames or machine-specific directories
+- **Never hardcode repo names, branch names, or account names.** Use generic placeholders
+- **NEVER include secrets, API keys, tokens, passwords, or credentials.** Use `$API_KEY`, `<your-token>`
+- **Never include environment variable values.** Reference names only (`$ENV_VAR`)
 - When transcript shows corrections, reflect ONLY the final approach
 - Under 500 lines total
+- One excellent code example beats many mediocre ones
 
 ## Skill Identity & Quality
 
-Skills must be **specific in stack/technology, generic in personal details**:
+**Naming:** active voice, verb-first, specific stack, generic identity:
 - GOOD: `building-mcp-server-for-stripe-with-fastmcp`
 - GOOD: `setting-up-nextjs-auth-with-clerk-and-drizzle`
-- BAD: `creating-a-websocket-server` — too vague
-- BAD: `deploying-acme-corp-api-to-prod` — contains org name
-- BAD: `fixing-janes-login-bug` — contains personal reference
+- BAD: `creating-a-websocket-server` (too vague)
+- BAD: `deploying-acme-corp-api-to-prod` (contains org name)
 
-Skills must be **self-contained and individually executable**:
-- Include ALL dependencies, libraries, configs, and setup steps
-- A reader with zero prior context must be able to replay the entire workflow
-- Never reference specific users, organizations, or project names
+**Description:** starts with "Use when...", describes only triggering conditions, NOT what the skill does. Under 500 characters. Third person.
 
-The `description` field should name the specific stack/tools, not just the category.
+```yaml
+# BAD: summarizes workflow
+description: "Use when deploying apps. Sets up Docker, pushes to registry, deploys to k8s."
+
+# GOOD: just trigger conditions
+description: "Use when containerizing a Python app for Kubernetes deployment with Docker and Helm charts."
+```
+
+**Self-contained:** include ALL dependencies, libraries, configs, setup steps. A reader with zero prior context must reproduce the entire workflow.
