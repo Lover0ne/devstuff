@@ -10,6 +10,6 @@
   "keywords": ["skills", "templates", "anonymize", "reuse", "placeholders"],
   "skills": "./skills/",
   "commands": [
-    "./commands/clone.md"
+    "./commands/copycat-clone.md"
   ]
 }

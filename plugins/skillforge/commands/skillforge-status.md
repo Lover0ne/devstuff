@@ -1,6 +1,7 @@
 ---
 name: skillforge-status
-description: Show Skillforge status and skill counts for current project
+description: Use when you want to check Skillforge status. "skillforge status", "how many skills generated", "is skillforge active".
+disable-model-invocation: true
 ---
 
 Show Skillforge status:

@@ -28,7 +28,7 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 ## Usage
 
 ```
-/copycat:clone <skill-name>
+/copycat-clone <skill-name>
 ```
 
 Copycat will:
@@ -49,7 +49,7 @@ Copycat will:
 ### Example
 
 ```
-/copycat:clone my-deploy-skill
+/copycat-clone my-deploy-skill
 ```
 
 Produces a `my-deploy-skill-copycat` skill where `/Users/me/myapp` becomes `{{project_dir}}` and `acme-api.com` becomes `{{api_domain}}`.
@@ -68,7 +68,7 @@ copycat/
 ├── .claude-plugin/
 │   └── plugin.json       # Plugin manifest
 ├── commands/
-│   └── clone.md          # /copycat:clone command
+│   └── clone.md          # /copycat-clone command
 └── skills/
     └── .gitkeep
 ```

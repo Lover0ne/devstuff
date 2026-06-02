@@ -23,8 +23,9 @@ Store the user's choice. It determines the output format in Step 4.
 ## Step 1: Find the source skill
 
 Search for the skill by name in these locations (stop at first match):
-1. `~/.claude/skills/` — each subfolder contains a `SKILL.md`
-2. Plugin skill directories — glob `~/.claude/plugins/cache/*/skills/*/SKILL.md`
+1. `.claude/skills/` in the current project — each subfolder contains a `SKILL.md`
+2. `~/.claude/skills/` — global user skills (legacy)
+3. Plugin skill directories — glob `~/.claude/plugins/cache/*/skills/*/SKILL.md`
 
 Read the skill's `SKILL.md` content. If not found, tell the user and stop.
 
@@ -157,4 +158,4 @@ Report:
 - Number of unique placeholders created
 - List of placeholders with descriptions
 - Output path
-- How to invoke: `/copycat:{original-name}-copycat`
+- How to invoke: `/copycat-{original-name}-copycat`

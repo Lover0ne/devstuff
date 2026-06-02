@@ -9,9 +9,9 @@
   "keywords": ["claude-code-plugin", "skills", "utility", "automation"],
   "skills": "./skills/",
   "commands": [
-    "./commands/launch.md",
-    "./commands/status.md",
-    "./commands/skills.md"
+    "./commands/skillforge-launch.md",
+    "./commands/skillforge-status.md",
+    "./commands/skillforge-skills.md"
   ],
   "agents": [
     "./agents/skill-writer.md"

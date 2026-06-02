@@ -28,9 +28,9 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 ## Usage
 
 ```
-/skillforge:launch    Analyze project and generate all utility skills
-/skillforge:skills    List generated skills (filterable by project)
-/skillforge:status    Show skill counts and project info
+/skillforge-launch    Analyze project and generate all utility skills
+/skillforge-skills    List generated skills (filterable by project)
+/skillforge-status    Show skill counts and project info
 ```
 
 ## How It Works
@@ -41,7 +41,7 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 | **Identify** | AI analyzes the data and identifies every potential utility skill |
 | **Swarm** | One background agent per skill, all running in parallel |
 | **Write** | Each agent produces a complete, reproducible SKILL.md |
-| **Version** | Re-running `/skillforge:launch` updates existing skills, archives old versions |
+| **Version** | Re-running `/skillforge-launch` updates existing skills, archives old versions |
 
 ## What It Generates
 

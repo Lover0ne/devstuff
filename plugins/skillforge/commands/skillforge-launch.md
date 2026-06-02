@@ -1,6 +1,6 @@
 ---
 name: skillforge-launch
-description: Analyze project and generate utility skills via agent swarm
+description: Use when you want to generate utility skills for this project. "generate skills", "skillforge launch", "analyze project and create skills".
 ---
 
 Generate utility skills for this project. You ARE the analyzer — explore the project directly using your tools.
