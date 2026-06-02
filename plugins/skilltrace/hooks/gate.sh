@@ -47,8 +47,9 @@ DENY
 fi
 
 # --- Stage 2: Task boundary check ---
-# Skip if project declined tracking
+# Skip if project declined or paused
 grep -q '"declined"' "$MARKER_PATH" 2>/dev/null && exit 0
+grep -q '"paused"' "$MARKER_PATH" 2>/dev/null && exit 0
 
 # Check for pending reminder (pre-built deny JSON from cmd_reminder)
 PENDING="$HOME/.skilltrace-gate/pending"

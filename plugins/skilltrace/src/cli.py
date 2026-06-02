@@ -35,15 +35,20 @@ from src.transcript import scrape_transcript
 from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 
-def _check_marker_exists() -> bool:
+def _find_marker() -> Path | None:
     current = Path.cwd().resolve()
     while True:
-        if (current / ".skilltrace").exists():
-            return True
+        marker = current / ".skilltrace"
+        if marker.exists():
+            return marker
         parent = current.parent
         if parent == current:
-            return False
+            return None
         current = parent
+
+
+def _check_marker_exists() -> bool:
+    return _find_marker() is not None
 
 
 def cmd_setup() -> dict:
@@ -185,13 +190,23 @@ def cmd_finalize(hook_data: dict) -> dict:
 
 
 def cmd_pause() -> dict:
-    set_enabled(False)
-    return receipt("ok", "paused", "config")
+    marker = _find_marker()
+    if not marker:
+        return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "pause")
+    data = json.loads(marker.read_text(encoding="utf-8"))
+    data["paused"] = True
+    marker.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return receipt("ok", "paused", str(marker))
 
 
 def cmd_resume() -> dict:
-    set_enabled(True)
-    return receipt("ok", "resumed", "config")
+    marker = _find_marker()
+    if not marker:
+        return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "resume")
+    data = json.loads(marker.read_text(encoding="utf-8"))
+    data.pop("paused", None)
+    marker.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return receipt("ok", "resumed", str(marker))
 
 
 def _read_project_id() -> str | None:
@@ -211,13 +226,19 @@ def _read_project_id() -> str | None:
 
 
 def cmd_status() -> dict:
-    cfg = load_config()
     entries = list_entries()
     project_id = _read_project_id()
+    marker = _find_marker()
+    paused = False
+    if marker:
+        try:
+            paused = json.loads(marker.read_text(encoding="utf-8")).get("paused", False)
+        except Exception:
+            pass
     project_skills = [e for e in entries if e.get("project_id") == project_id] if project_id else []
     last_updated = max((e.get("updated", "") for e in entries), default="never")
     result = {
-        "enabled": cfg.get("enabled", True),
+        "enabled": not paused,
         "total_skills": len(entries),
         "project_skills": len(project_skills),
         "project_id": project_id or "not initialized",

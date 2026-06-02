@@ -46,20 +46,13 @@ def _find_projects() -> list[dict]:
                     try:
                         data = json.loads(entry.read_text(encoding="utf-8"))
                         pid = data.get("project_id")
-                        declined = data.get("declined", False)
-                        if pid and not declined and pid not in seen_ids:
+                        if pid and not data.get("declined") and pid not in seen_ids:
                             seen_ids.add(pid)
                             projects.append({
                                 "id": pid,
                                 "name": entry.parent.name,
                                 "path": str(entry.parent),
-                            })
-                        elif declined:
-                            projects.append({
-                                "id": f"declined-{entry.parent.name}",
-                                "name": entry.parent.name,
-                                "path": str(entry.parent),
-                                "declined": True,
+                                "paused": bool(data.get("paused")),
                             })
                     except (json.JSONDecodeError, OSError):
                         pass
@@ -409,24 +402,16 @@ function toggleTheme() {
 
 function renderProjects() {
   const el = document.getElementById('projectList');
-  const active = DATA.projects.filter(p => !p.declined);
-  const declined = DATA.projects.filter(p => p.declined);
-  const totalSkills = active.reduce((a, p) => a + p.skills.length, 0);
+  const totalSkills = DATA.projects.reduce((a, p) => a + p.skills.length, 0);
   let html = `<div class="project-item ${currentProject === null ? 'active' : ''}" onclick="selectProject(null)">
     <span>All Projects</span><span class="count">${totalSkills}</span></div>`;
-  for (const p of active) {
+  for (const p of DATA.projects) {
     const sel = currentProject === p.id ? 'active' : '';
-    html += `<div class="project-item ${sel}" onclick="selectProject('${p.id}')">
-      <div class="project-info"><div class="project-name">${esc(p.name)}</div><div class="project-path">${esc(p.path)}</div><div class="project-path" style="opacity:0.4">${p.id}</div></div>
+    const pausedStyle = p.paused ? 'opacity:0.6' : '';
+    const pausedBadge = p.paused ? ' <span style="font-size:9px;color:var(--fg3)">(paused)</span>' : '';
+    html += `<div class="project-item ${sel}" style="${pausedStyle}" onclick="selectProject('${p.id}')">
+      <div class="project-info"><div class="project-name">${esc(p.name)}${pausedBadge}</div><div class="project-path">${esc(p.path)}</div><div class="project-path" style="opacity:0.4">${p.id}</div></div>
       <span class="count">${p.skills.length}</span></div>`;
-  }
-  if (declined.length) {
-    html += '<div style="font-size:11px;color:var(--fg3);padding:12px 14px 4px;text-transform:uppercase;letter-spacing:0.5px">Disabled</div>';
-    for (const p of declined) {
-      html += `<div class="project-item" style="opacity:0.45;cursor:default">
-        <div class="project-info"><div class="project-name">${esc(p.name)}</div><div class="project-path">${esc(p.path)}</div></div>
-        <span style="font-size:10px;color:var(--fg3)">off</span></div>`;
-    }
   }
   el.innerHTML = html;
 }

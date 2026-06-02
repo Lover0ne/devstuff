@@ -348,6 +348,7 @@ class TestEnableDisable:
         from src.cli import cmd_setup, cmd_pause, cmd_status
 
         cmd_setup()
+        (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
         cmd_pause()
         status = cmd_status()
         assert status["enabled"] is False
@@ -356,16 +357,18 @@ class TestEnableDisable:
         from src.cli import cmd_setup, cmd_pause, cmd_resume, cmd_status
 
         cmd_setup()
+        (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
         cmd_pause()
         cmd_resume()
         status = cmd_status()
         assert status["enabled"] is True
 
     def test_disabled_allows_always_allowed(self, plugin_env):
-        """setup/init/registry/pause/resume/status/skills work when disabled."""
+        """setup/init/registry/pause/resume/status/skills work when paused."""
         from src.cli import cmd_setup, cmd_pause, cmd_status, cmd_skills
 
         cmd_setup()
+        (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
         cmd_pause()
         status = cmd_status()
         assert status["enabled"] is False
