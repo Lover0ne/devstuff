@@ -30,7 +30,7 @@ That's how Skilltrace was born. A plugin that watches you work, figures out what
 
 The key idea behind Skilltrace is simple: **it never touches your current task.** It always operates on the *previous* one.
 
-When you send a new prompt, Skilltrace looks at what you just finished and evaluates it in the background. This means it never slows you down, never injects extra reasoning into your current conversation, never wastes tokens on tracking while you're in the middle of something. Your context is sacred and Skilltrace doesn't touch it.
+When you send a new prompt, Skilltrace looks at what you just finished and evaluates it in the background. This means it never slows you down, never injects noise into your current conversation, never wastes tokens on tracking while you're in the middle of a critical task where you need your context clean, your agent sharp, and every token focused on the problem in front of you. Your context is sacred. Skilltrace doesn't touch it.
 
 A background agent handles everything: it reads what happened, decides if it's worth a skill, writes it, and disappears. You don't see it, you don't interact with it, you don't even know it ran. If it decides the previous task was just a quick question or a formatting tweak, it does nothing.
 
