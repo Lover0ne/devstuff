@@ -58,9 +58,47 @@ def _get_registry_entry(skill_id: str) -> dict | None:
     return None
 
 
-def _scaffold_content(name: str, description: str) -> str:
+def _scaffold_content(name: str, description: str = "") -> str:
     desc = description.replace('"', '\\"') if description else "Use when [trigger]"
     return f'---\nname: {_slugify(name)}\ndescription: "{desc}"\n---\n\n{_BODY_MARKER}\n'
+
+
+def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -> dict:
+    if not _is_safe_id(skill_id):
+        return error_receipt(f"Invalid skill ID: {skill_id}", "skill_meta")
+    existing = _get_registry_entry(skill_id)
+    if not existing:
+        return error_receipt(f"Skill '{skill_id}' not found", "skill_meta")
+
+    update_data = {}
+    if description:
+        update_data["description"] = description
+    if tags is not None:
+        update_data["tags"] = tags
+
+    if update_data:
+        version = int(existing.get("version", 1))
+        _update_registry(skill_id, update_data, version)
+
+    path = _skill_path(skill_id)
+    if path.exists() and description:
+        content = path.read_text(encoding="utf-8")
+        import re as _re
+        content = _re.sub(
+            r'(description:\s*")[^"]*(")',
+            lambda m: m.group(1) + description.replace('"', '\\"') + m.group(2),
+            content,
+            count=1,
+        )
+        path.write_text(content, encoding="utf-8")
+
+    return {
+        "status": "ok",
+        "action": "meta_updated",
+        "skill_id": skill_id,
+        "description": description,
+        "tags": tags or [],
+    }
 
 
 def _archive_current(skill_id: str, version: int) -> Path | None:
@@ -102,12 +140,12 @@ def prepare_create(metadata: dict) -> dict:
     skill_dir.mkdir(parents=True, exist_ok=True)
     path = _skill_path(skill_id)
     path.write_text(
-        _scaffold_content(name, metadata.get("description", "")),
+        _scaffold_content(name),
         encoding="utf-8",
     )
 
     entry_data = {
-        **metadata,
+        "name": name,
         "id": skill_id,
         "project_id": project_id,
         "path": f"{skill_id}/SKILL.md",

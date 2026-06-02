@@ -17,6 +17,7 @@ Commands:
   scrape-transcript --stdin Scrape transcript JSONL, return clean JSON array
   registry        --add/--remove/--list   Registry CRUD operations
   skill-write     --prepare JSON   Scaffold skill files, archive old versions
+  skill-meta      --set JSON      Update skill description and tags
   dashboard       [--no-open]     Generate and open interactive HTML dashboard
 """
 
@@ -31,7 +32,7 @@ from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, proje
 from src.config import load_config, is_enabled, set_enabled
 from src.registry import add_entry, remove_entry, list_entries
 from src.transcript import scrape_transcript
-from src.skill_ops import prepare_create, prepare_new_version
+from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 
 def _check_marker_exists() -> bool:
@@ -367,6 +368,21 @@ def cmd_skill_write(metadata_json: str) -> dict:
         return error_receipt(f"Unknown action: {action}. Use create/new_version.", "skill_write")
 
 
+def cmd_skill_meta(meta_json: str) -> dict:
+    try:
+        meta = json.loads(meta_json)
+    except json.JSONDecodeError as e:
+        return error_receipt(f"Invalid JSON: {e}", "skill_meta")
+    skill_id = meta.get("id")
+    if not skill_id:
+        return error_receipt("Missing skill id", "skill_meta")
+    return update_skill_meta(
+        skill_id,
+        description=meta.get("description", ""),
+        tags=meta.get("tags"),
+    )
+
+
 def main():
     if len(sys.argv) < 2:
         print(json.dumps(error_receipt("No command provided", "cli")), file=sys.stderr)
@@ -374,7 +390,7 @@ def main():
 
     command = sys.argv[1]
 
-    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "dashboard", "scrape-transcript", "skill-write")
+    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "dashboard", "scrape-transcript", "skill-write", "skill-meta")
     if not is_enabled() and command not in always_allowed:
         if command in ("reminder", "finalize"):
             print(json.dumps({}))
@@ -473,6 +489,14 @@ def main():
                 sys.exit(1)
             metadata_json = sys.argv[3] if len(sys.argv) > 3 else sys.stdin.read()
             result = cmd_skill_write(metadata_json)
+            print(json.dumps(result))
+
+        elif command == "skill-meta":
+            if len(sys.argv) < 3 or sys.argv[2] != "--set":
+                print(json.dumps(error_receipt("Usage: skill-meta --set JSON", "skill_meta")), file=sys.stderr)
+                sys.exit(1)
+            meta_json = sys.argv[3] if len(sys.argv) > 3 else sys.stdin.read()
+            result = cmd_skill_meta(meta_json)
             print(json.dumps(result))
         else:
             print(json.dumps(error_receipt(f"Unknown command: {command}", "cli")), file=sys.stderr)

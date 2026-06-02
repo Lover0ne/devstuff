@@ -320,13 +320,17 @@ class TestSkillsInventory:
         r = cmd_skill_write(json.dumps({
             "action": "create",
             "name": "MCP Stripe Server",
-            "description": "Use when building MCP server for Stripe API",
-            "tags": ["mcp", "stripe"],
         }))
         Path(r["write_to"]).write_text(
             '---\nname: mcp-stripe-server\ndescription: "Use when building MCP server for Stripe API"\n---\n# MCP Stripe Server',
             encoding="utf-8",
         )
+        from src.cli import cmd_skill_meta
+        cmd_skill_meta(json.dumps({
+            "id": r["skill_id"],
+            "description": "Use when building MCP server for Stripe API",
+            "tags": ["mcp", "stripe"],
+        }))
 
         (plugin_env["project_dir"] / ".skilltrace").write_text(
             json.dumps({"project_id": "proj-inv"})
@@ -505,8 +509,6 @@ class TestFullLifecycleE2E:
         r1 = cmd_skill_write(json.dumps({
             "action": "create",
             "name": "Setting Up NextJS Auth with Clerk and Drizzle",
-            "description": "Use when setting up NextJS auth with Clerk and Drizzle ORM",
-            "tags": ["nextjs", "clerk", "drizzle", "auth"],
         }))
         assert r1["version"] == 1
         sid = r1["skill_id"]
@@ -517,6 +519,12 @@ class TestFullLifecycleE2E:
             '---\n# NextJS Auth with Clerk and Drizzle\n## What\nAuth setup steps.',
             encoding="utf-8",
         )
+        from src.cli import cmd_skill_meta
+        cmd_skill_meta(json.dumps({
+            "id": sid,
+            "description": "Use when setting up NextJS auth with Clerk and Drizzle ORM",
+            "tags": ["nextjs", "clerk", "drizzle", "auth"],
+        }))
 
         # 6. Skills inventory shows 1 skill
         inv = cmd_skills()

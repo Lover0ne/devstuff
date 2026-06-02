@@ -48,7 +48,7 @@ Compare work against ALL skills from Step 1:
 
 **For create:**
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name","description":"Use when [triggering conditions only, no workflow summary]","tags":["tag1","tag2"]}'
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-write --prepare '{"action":"create","name":"Descriptive Skill Name"}'
 ```
 
 **For new_version:**
@@ -61,6 +61,16 @@ Follow the `instructions` field in the response.
 ### Step 5: Write skill body
 
 Follow the `instructions` from Step 4 to write the body content. Structure the body as a **reference guide**, not a narrative.
+
+### Step 6: Set skill metadata
+
+After writing the body, set description and tags based on what you just wrote:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" skill-meta --set '{"id":"SKILL_ID","description":"Use when [trigger conditions only]","tags":["tag1","tag2"]}'
+```
+
+The description must start with "Use when..." and describe only triggering conditions, not what the skill does. Tags are keywords for discovery.
 
 Body structure:
 
@@ -108,15 +118,5 @@ No `## What` / `## Why` narrative sections.
 - GOOD: `setting-up-nextjs-auth-with-clerk-and-drizzle`
 - BAD: `creating-a-websocket-server` (too vague)
 - BAD: `deploying-acme-corp-api-to-prod` (contains org name)
-
-**Description:** starts with "Use when...", describes only triggering conditions, NOT what the skill does. Under 500 characters. Third person.
-
-```yaml
-# BAD: summarizes workflow
-description: "Use when deploying apps. Sets up Docker, pushes to registry, deploys to k8s."
-
-# GOOD: just trigger conditions
-description: "Use when containerizing a Python app for Kubernetes deployment with Docker and Helm charts."
-```
 
 **Self-contained:** include ALL dependencies, libraries, configs, setup steps. A reader with zero prior context must reproduce the entire workflow.
