@@ -378,10 +378,7 @@ a:hover { text-decoration: underline; }
   <div class="modal">
     <div class="modal-header">
       <h3 id="modalTitle"></h3>
-      <div style="display:flex;gap:6px;align-items:center">
-        <button class="btn" id="copySkillBtn" onclick="copyCurrentSkill(this)" style="font-size:12px;padding:4px 10px">Copy</button>
-        <button class="modal-close" onclick="closeModal()">&times;</button>
-      </div>
+      <button class="modal-close" onclick="closeModal()">&times;</button>
     </div>
     <div class="modal-tabs" id="modalTabs"></div>
     <div class="modal-body">
@@ -522,7 +519,7 @@ function viewSkill(idx) {
   document.getElementById('modalTabs').innerHTML = tabs;
   document.getElementById('tabContent').className = 'tab-content active md-content';
   const currentVh = (s.version_history || []).find(h => h.version === current.version);
-  const versionInfo = `<div style="font-size:12px;color:var(--fg3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Version ${current.version}${currentVh ? ' &middot; Created ' + fmtDate(currentVh.created_at) : ''} &middot; ${esc(s.description || '')}</div>`;
+  const versionInfo = `<div style="font-size:12px;color:var(--fg3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span>Version ${current.version}${currentVh ? ' &middot; Created ' + fmtDate(currentVh.created_at) : ''} &middot; ${esc(s.description || '')}</span><button class="btn" onclick="copyCurrentSkill(this)" style="font-size:13px;font-weight:500;padding:5px 14px;flex-shrink:0;margin-left:12px">Copy skill content</button></div>`;
   document.getElementById('tabContent').innerHTML = versionInfo + renderMd(current.content);
   if (hasManyVersions) {
     renderTimeline();
