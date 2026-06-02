@@ -64,27 +64,27 @@ It shows every project, every skill, every version. You can browse history, comp
 Just say "open the skilltrace dashboard" or run `/skilltrace-dashboard`.
 
 <p align="center">
-  <img width="100%" alt="Dashboard light mode" src="https://www-skilltrace.vercel.app/screenshots/dashboard-light.png" />
+  <img width="100%" alt="Dashboard overview" src="https://www-skilltrace.vercel.app/screenshots/dashboard-overview.png" />
 </p>
 
 <details>
-<summary>Dark mode</summary>
+<summary>Skill viewer</summary>
 <p align="center">
-  <img width="100%" alt="Dashboard dark mode" src="https://www-skilltrace.vercel.app/screenshots/dashboard-dark.png" />
-</p>
-</details>
-
-<details>
-<summary>Skill viewer with version history</summary>
-<p align="center">
-  <img width="100%" alt="Skill modal" src="https://www-skilltrace.vercel.app/screenshots/dashboard-modal.png" />
+  <img width="100%" alt="Skill viewer" src="https://www-skilltrace.vercel.app/screenshots/dashboard-skill-viewer.png" />
 </p>
 </details>
 
 <details>
-<summary>Side-by-side diff</summary>
+<summary>Version timeline</summary>
 <p align="center">
-  <img width="100%" alt="Version compare" src="https://www-skilltrace.vercel.app/screenshots/dashboard-compare.png" />
+  <img width="100%" alt="Version history" src="https://www-skilltrace.vercel.app/screenshots/dashboard-history.png" />
+</p>
+</details>
+
+<details>
+<summary>Version compare</summary>
+<p align="center">
+  <img width="100%" alt="Side-by-side diff" src="https://www-skilltrace.vercel.app/screenshots/dashboard-compare.png" />
 </p>
 </details>
 
@@ -92,7 +92,6 @@ Just say "open the skilltrace dashboard" or run `/skilltrace-dashboard`.
 <summary>Mobile</summary>
 <p align="center">
   <img width="300" alt="Mobile view" src="https://www-skilltrace.vercel.app/screenshots/dashboard-mobile.png" />
-  <img width="300" alt="Mobile menu" src="https://www-skilltrace.vercel.app/screenshots/dashboard-mobile-menu.png" />
 </p>
 </details>
 
@@ -117,7 +116,16 @@ Two commands and you're done. On your next session, Skilltrace introduces itself
 
 You can also just ask Claude in plain English: "open the skilltrace dashboard", "pause skilltrace", "resume tracking".
 
-More commands are available for advanced use (`skilltrace-skills`, `skilltrace-overview`, `skilltrace-history`, `skilltrace-status`, `skilltrace-reindex`).
+If you want the same information the dashboard shows but without leaving your terminal, these commands give you quick answers inline:
+
+| Command | What it does |
+|---------|-------------|
+| `/skilltrace-skills` | List all skills for this project with descriptions and versions |
+| `/skilltrace-overview` | Show skills across all projects |
+| `/skilltrace-history` | Show version history of a specific skill |
+| `/skilltrace-status` | Check if Skilltrace is active and how many skills exist |
+
+If your skill registry gets out of sync with files on disk (rare, but possible), you can rebuild it with `/skilltrace-reindex`.
 
 ## Requirements
 
