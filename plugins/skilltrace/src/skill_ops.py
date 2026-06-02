@@ -133,8 +133,8 @@ def _archive_current(skill_id: str, version: int) -> Path | None:
     dst.parent.mkdir(parents=True, exist_ok=True)
     try:
         src.rename(dst)
-    except OSError:
-        return None
+    except OSError as e:
+        return {"error": str(e)}
     return dst
 
 
@@ -209,12 +209,14 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
     if current_path.exists():
         try:
             incomplete = _BODY_MARKER in current_path.read_text(encoding="utf-8")
-        except OSError:
-            pass
+        except OSError as e:
+            return error_receipt(f"Cannot read current SKILL.md: {e}", "skill_new_version")
     if incomplete:
         archived = None
     else:
         archived = _archive_current(skill_id, current_version)
+        if isinstance(archived, dict) and "error" in archived:
+            return error_receipt(f"Failed to archive current version: {archived['error']}", "skill_new_version")
         if current_path.exists() and archived is None:
             return error_receipt("Failed to archive current version", "skill_new_version")
 

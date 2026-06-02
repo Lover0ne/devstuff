@@ -514,7 +514,7 @@ def main():
         print(json.dumps(error_receipt(f"Invalid JSON input: {e}", command)), file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(json.dumps(error_receipt(str(e), command)), file=sys.stderr)
+        print(json.dumps(error_receipt(f"{type(e).__name__}: {e}", command)), file=sys.stderr)
         sys.exit(1)
 
 
