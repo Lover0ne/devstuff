@@ -9,16 +9,16 @@
   "keywords": ["skills", "automation", "tracing", "productivity"],
   "skills": "./skills/",
   "commands": [
-    "./commands/init.md",
-    "./commands/skip.md",
-    "./commands/status.md",
-    "./commands/pause.md",
-    "./commands/resume.md",
-    "./commands/reindex.md",
-    "./commands/skills.md",
-    "./commands/history.md",
-    "./commands/overview.md",
-    "./commands/dashboard.md"
+    "./commands/skilltrace-init.md",
+    "./commands/skilltrace-skip.md",
+    "./commands/skilltrace-status.md",
+    "./commands/skilltrace-pause.md",
+    "./commands/skilltrace-resume.md",
+    "./commands/skilltrace-reindex.md",
+    "./commands/skilltrace-skills.md",
+    "./commands/skilltrace-history.md",
+    "./commands/skilltrace-overview.md",
+    "./commands/skilltrace-dashboard.md"
   ],
   "agents": [
     "./agents/skilltracer.md"
