@@ -1,6 +1,6 @@
 ---
 name: skip
-description: Skip Skilltrace initialization for this project
+description: Use when user declines Skilltrace for this project. "skip skilltrace", "don't track this project", "no skilltrace here".
 ---
 
 Skip Skilltrace tracking for this project:

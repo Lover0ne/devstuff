@@ -1,6 +1,6 @@
 ---
 name: pause
-description: Pause Skilltrace activity tracking
+description: Use when user wants to temporarily stop Skilltrace. "pause skilltrace", "stop tracking", "disable skilltrace for now".
 ---
 
 Pause Skilltrace:

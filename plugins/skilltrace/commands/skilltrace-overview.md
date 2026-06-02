@@ -1,6 +1,6 @@
 ---
 name: overview
-description: Show skills across all projects with counts and details
+description: Use when user wants a global view of all Skilltrace skills across every project. "show all projects", "skilltrace overview", "how many skills across all projects", "global skill summary".
 ---
 
 Show cross-project skill overview:

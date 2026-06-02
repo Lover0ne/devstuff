@@ -1,5 +1,5 @@
 ---
-description: Open interactive dashboard showing all projects, skills, versions, and diffs
+description: Open Skilltrace dashboard in the browser. Shows all projects, skills, version history, and diffs. "open skilltrace dashboard", "show skill dashboard", "skilltrace UI".
 disable-model-invocation: true
 ---
 

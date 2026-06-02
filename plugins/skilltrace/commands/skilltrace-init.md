@@ -1,6 +1,6 @@
 ---
 name: init
-description: Enable Skilltrace tracking for the current project
+description: Use when user wants to enable Skilltrace in the current project. "enable skilltrace", "start tracking", "activate skilltrace here".
 ---
 
 Initialize Skilltrace for this project:

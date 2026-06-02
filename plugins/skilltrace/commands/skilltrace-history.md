@@ -1,6 +1,6 @@
 ---
 name: history
-description: Show full version history of a specific skill with content of each version
+description: Use when user asks about previous versions of a Skilltrace skill. "show skill history", "what changed in this skill", "old versions of deploy skill", "how did this skill evolve".
 ---
 
 Show version history for a skill:

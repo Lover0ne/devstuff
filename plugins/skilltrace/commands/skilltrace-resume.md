@@ -1,6 +1,6 @@
 ---
 name: resume
-description: Resume Skilltrace activity tracking
+description: Use when user wants to re-enable Skilltrace after pausing. "resume skilltrace", "start tracking again", "re-enable skilltrace".
 ---
 
 Resume Skilltrace:
