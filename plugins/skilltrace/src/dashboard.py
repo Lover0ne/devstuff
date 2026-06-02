@@ -138,6 +138,7 @@ def _collect_data() -> dict:
                 "created": s.get("created", ""),
                 "updated": s.get("updated", ""),
                 "versions": _read_versions(proj["path"], sid, ver),
+                "version_history": s.get("version_history", []),
             })
         result_projects.append({
             "id": pid,
@@ -537,11 +538,13 @@ function renderTimeline() {
     const v = realVersions[i];
     const origIdx = s.versions.indexOf(v);
     const isCurrent = v.current ? 'current' : '';
+    const vh = (s.version_history || []).find(h => h.version === v.version);
+    const dateStr = vh ? fmtDate(vh.created_at) : '';
     items.push(`<div class="timeline-item" onclick="showVersionInModal(${origIdx})">
       <div class="timeline-dot-col"><div class="timeline-dot ${isCurrent}"></div><div class="timeline-line"></div></div>
       <div class="timeline-info">
         <div class="timeline-version">Version ${v.version} ${v.current ? '(current)' : ''}</div>
-        <div class="timeline-label">${v.current ? 'Latest' : 'Archived'}</div>
+        <div class="timeline-label">${dateStr ? 'Created ' + dateStr : (v.current ? 'Latest' : 'Archived')}</div>
       </div>
     </div>`);
   }

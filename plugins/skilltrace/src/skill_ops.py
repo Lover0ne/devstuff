@@ -162,11 +162,13 @@ def prepare_create(metadata: dict) -> dict:
         encoding="utf-8",
     )
 
+    from src.shared import now_iso
     entry_data = {
         "name": name,
         "id": skill_id,
         "project_id": project_id,
         "path": f"{skill_id}/SKILL.md",
+        "version_history": [{"version": 1, "created_at": now_iso()}],
     }
     _update_registry(skill_id, entry_data, 1)
 
@@ -204,8 +206,11 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
         encoding="utf-8",
     )
 
+    from src.shared import now_iso
     new_version = current_version + 1
-    update_data = {}
+    history = existing.get("version_history", [])
+    history.append({"version": new_version, "created_at": now_iso()})
+    update_data = {"version_history": history}
     if change_summary:
         update_data["change_summary"] = change_summary
     _update_registry(skill_id, update_data, new_version)
