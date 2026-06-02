@@ -66,7 +66,7 @@ def find_or_create_project_id(start_dir: Path | None = None) -> tuple[str, Path]
             break
         current = parent
     target = found_marker or (start.resolve() / _SKILLTRACE_MARKER)
-    project_id = f"proj-{uuid.uuid4().hex[:8]}"
+    project_id = f"proj-{uuid.uuid4().hex[:16]}"
     data = {"project_id": project_id, "created": now_iso()}
     target.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
     return project_id, target

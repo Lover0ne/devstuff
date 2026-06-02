@@ -5,9 +5,31 @@ user prompts + assistant actions (text, tool_use with key params only).
 """
 
 import json
+import re
 from pathlib import Path
 
 _MAX_TEXT_LEN = 3000
+
+_SECRET_PATTERNS = [
+    (re.compile(r'(Bearer\s+)\S+', re.IGNORECASE), r'\1[REDACTED]'),
+    (re.compile(r'(api[_-]?key\s*[=:]\s*)\S+', re.IGNORECASE), r'\1[REDACTED]'),
+    (re.compile(r'(password\s*[=:]\s*)\S+', re.IGNORECASE), r'\1[REDACTED]'),
+    (re.compile(r'(secret\s*[=:]\s*)\S+', re.IGNORECASE), r'\1[REDACTED]'),
+    (re.compile(r'(token\s*[=:]\s*)\S+', re.IGNORECASE), r'\1[REDACTED]'),
+    (re.compile(r'https?://[^@\s]+@'), 'https://[REDACTED]@'),
+    (re.compile(r'(AWS_SECRET_ACCESS_KEY\s*[=:]\s*)\S+'), r'\1[REDACTED]'),
+    (re.compile(r'(GITHUB_TOKEN\s*[=:]\s*)\S+'), r'\1[REDACTED]'),
+    (re.compile(r'(ghp_)\S{30,}'), r'\1[REDACTED]'),
+    (re.compile(r'(gho_)\S{30,}'), r'\1[REDACTED]'),
+    (re.compile(r'(sk-live-)\S+'), r'\1[REDACTED]'),
+    (re.compile(r'(sk-proj-)\S+'), r'\1[REDACTED]'),
+]
+
+
+def _redact_secrets(text: str) -> str:
+    for pattern, replacement in _SECRET_PATTERNS:
+        text = pattern.sub(replacement, text)
+    return text
 _MAX_ENTRIES = 500
 _MAX_PARAM_LEN = 3000
 
@@ -140,8 +162,29 @@ def _process_assistant(entry: dict, pending_tools: dict) -> dict | None:
     return result
 
 
+def _redact_entry(entry: dict) -> dict:
+    for key in ("text",):
+        if key in entry and isinstance(entry[key], str):
+            entry[key] = _redact_secrets(entry[key])
+    if "tools" in entry:
+        for tool in entry["tools"]:
+            if "params" in tool:
+                for k, v in tool["params"].items():
+                    if isinstance(v, str):
+                        tool["params"][k] = _redact_secrets(v)
+    if "tool_results" in entry:
+        for tr in entry["tool_results"]:
+            if "result" in tr and isinstance(tr["result"], str):
+                tr["result"] = _redact_secrets(tr["result"])
+    return entry
+
+
 def scrape_transcript(transcript_path: str) -> list[dict]:
-    path = Path(transcript_path)
+    path = Path(transcript_path).resolve()
+    if ".." in path.parts:
+        return []
+    if not path.suffix == ".jsonl":
+        return []
     if not path.exists():
         return []
     pending_tools: dict[str, str] = {}
@@ -166,4 +209,4 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                     results.append(processed)
     if len(results) > _MAX_ENTRIES:
         results = results[-_MAX_ENTRIES:]
-    return results
+    return [_redact_entry(r) for r in results]

@@ -72,7 +72,10 @@ def _get_registry_entry(skill_id: str) -> dict | None:
 
 
 def _sanitize_yaml_string(s: str) -> str:
-    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").replace("\r", "")
+    s = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").replace("\r", "")
+    if s.startswith((":", "'", "{", "[", "*", "&", "!", "|", ">")):
+        s = " " + s
+    return s
 
 
 def _scaffold_content(name: str, description: str = "") -> str:
@@ -184,7 +187,12 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
     if not existing:
         return error_receipt(f"Skill '{skill_id}' not found", "skill_new_version")
 
-    current_version = int(existing.get("version", 1))
+    try:
+        current_version = int(existing.get("version", 1))
+    except (ValueError, TypeError):
+        current_version = 1
+    if current_version < 1 or current_version > 10000:
+        return error_receipt(f"Invalid version: {current_version}", "skill_new_version")
     archived = _archive_current(skill_id, current_version)
 
     path = _skill_path(skill_id)

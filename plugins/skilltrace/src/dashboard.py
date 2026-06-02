@@ -22,6 +22,11 @@ _SKIP_DIRS = {
 }
 
 
+def _is_safe_skill_id(sid: str) -> bool:
+    import re as _re
+    return bool(sid) and bool(_re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid))
+
+
 def _find_projects() -> list[dict]:
     projects = []
     seen_ids = set()
@@ -34,6 +39,8 @@ def _find_projects() -> list[dict]:
         except (PermissionError, OSError):
             return
         for entry in entries:
+            if entry.is_symlink():
+                continue
             if not entry.is_dir():
                 if entry.name == ".skilltrace" and entry.is_file():
                     try:
@@ -60,6 +67,8 @@ def _find_projects() -> list[dict]:
 
 
 def _read_skill_content(project_path: str, skill_id: str) -> str:
+    if not _is_safe_skill_id(skill_id):
+        return ""
     candidates = [
         Path(project_path) / ".claude" / "skills" / skill_id / "SKILL.md",
         Path.home() / ".claude" / "skills" / skill_id / "SKILL.md",
@@ -73,13 +82,19 @@ def _read_skill_content(project_path: str, skill_id: str) -> str:
     return ""
 
 
+_MAX_VERSIONS = 50
+
+
 def _read_versions(project_path: str, skill_id: str, current_version: int) -> list[dict]:
+    if not _is_safe_skill_id(skill_id):
+        return []
     versions = []
+    start_version = max(1, current_version - _MAX_VERSIONS)
     ver_bases = [
         Path(project_path) / ".claude" / "skilltrace" / "versions" / skill_id,
         Path.home() / ".claude" / "skilltrace" / "versions" / skill_id,
     ]
-    for v in range(1, current_version):
+    for v in range(start_version, current_version):
         for ver_base in ver_bases:
             vpath = ver_base / f"v{v}.md"
             if vpath.exists():
@@ -649,7 +664,10 @@ function inline(text) {
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
-    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>');
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, url) => {
+      if (/^(javascript|data|vbscript):/i.test(url)) return esc(label);
+      return `<a href="${url}" target="_blank">${label}</a>`;
+    });
 }
 
 // --- Line diff (no deps) ---
