@@ -106,6 +106,8 @@ def _read_versions(project_path: str, skill_id: str, current_version: int) -> li
     current_content = _read_skill_content(project_path, skill_id)
     if current_content:
         versions.append({"version": current_version, "content": current_content, "current": True})
+    if start_version > 1:
+        versions.insert(0, {"version": 0, "capped": True, "hidden_count": start_version - 1})
     return versions
 
 
@@ -487,22 +489,49 @@ function switchTab(name) {
   if (el) { el.classList.add('active'); if (name === 'history') el.classList.add('md-content'); }
 }
 
+let timelinePageSize = 10;
+let timelineShown = 10;
+
 function renderTimeline() {
   const s = modalSkill;
-  let html = '<div class="timeline">';
-  for (let i = s.versions.length - 1; i >= 0; i--) {
-    const v = s.versions[i];
+  timelineShown = timelinePageSize;
+  const realVersions = s.versions.filter(v => !v.capped);
+  const cappedEntry = s.versions.find(v => v.capped);
+  let html = '';
+  if (cappedEntry) {
+    html += `<div style="padding:10px 14px;font-size:12px;color:var(--fg3);background:var(--bg3);border-radius:8px;margin-bottom:10px;">Showing last ${realVersions.length} versions. ${cappedEntry.hidden_count} older versions archived on disk.</div>`;
+  }
+  html += '<div class="timeline" id="timelineList">';
+  const items = [];
+  for (let i = realVersions.length - 1; i >= 0; i--) {
+    const v = realVersions[i];
+    const origIdx = s.versions.indexOf(v);
     const isCurrent = v.current ? 'current' : '';
-    html += `<div class="timeline-item" onclick="showVersionInModal(${i})">
+    items.push(`<div class="timeline-item" onclick="showVersionInModal(${origIdx})">
       <div class="timeline-dot-col"><div class="timeline-dot ${isCurrent}"></div><div class="timeline-line"></div></div>
       <div class="timeline-info">
         <div class="timeline-version">Version ${v.version} ${v.current ? '(current)' : ''}</div>
-        <div class="timeline-label">${v.current ? 'Latest' : 'Archived'} — click to view</div>
+        <div class="timeline-label">${v.current ? 'Latest' : 'Archived'}</div>
       </div>
-    </div>`;
+    </div>`);
   }
+  html += items.slice(0, timelineShown).join('');
   html += '</div>';
+  if (items.length > timelineShown) {
+    html += `<button class="btn" style="margin-top:10px;width:100%" onclick="showMoreTimeline()">Show more (${items.length - timelineShown} remaining)</button>`;
+  }
   document.getElementById('tabHistory').innerHTML = html;
+  window._timelineItems = items;
+}
+
+function showMoreTimeline() {
+  timelineShown += timelinePageSize;
+  const list = document.getElementById('timelineList');
+  const items = window._timelineItems;
+  list.innerHTML = items.slice(0, timelineShown).join('');
+  const btn = list.parentElement.querySelector('button');
+  if (timelineShown >= items.length) { if (btn) btn.remove(); }
+  else if (btn) { btn.textContent = `Show more (${items.length - timelineShown} remaining)`; }
 }
 
 function showVersionInModal(vIdx) {
@@ -518,15 +547,17 @@ function showVersionInModal(vIdx) {
 
 function renderCompare() {
   const s = modalSkill;
-  const vers = s.versions;
+  const vers = s.versions.filter(v => !v.capped);
   let optionsA = '', optionsB = '';
   for (let i = 0; i < vers.length; i++) {
+    const origIdx = s.versions.indexOf(vers[i]);
     const sel = i === Math.max(0, vers.length - 2) ? 'selected' : '';
-    optionsA += `<option value="${i}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
+    optionsA += `<option value="${origIdx}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
   }
   for (let i = 0; i < vers.length; i++) {
+    const origIdx = s.versions.indexOf(vers[i]);
     const sel = i === vers.length - 1 ? 'selected' : '';
-    optionsB += `<option value="${i}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
+    optionsB += `<option value="${origIdx}" ${sel}>v${vers[i].version}${vers[i].current ? ' (current)' : ''}</option>`;
   }
   let html = `<div class="compare-controls">
     <label>From</label><select id="diffA" onchange="updateDiff()">${optionsA}</select>
