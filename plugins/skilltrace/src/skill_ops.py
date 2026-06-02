@@ -31,11 +31,22 @@ def _version_path(skill_id: str, version: int) -> Path:
     return _versions_dir() / skill_id / f"v{version}.md"
 
 
+_WIN_RESERVED = frozenset(
+    ["con", "prn", "nul", "aux"] +
+    [f"com{i}" for i in range(1, 10)] +
+    [f"lpt{i}" for i in range(1, 10)]
+)
+
+
 def _slugify(name: str) -> str:
     slug = name.lower().strip()
     slug = re.sub(r"[^a-z0-9]+", "-", slug)
     slug = slug.strip("-")
-    return slug[:64] if slug else f"sk-{uuid.uuid4().hex[:8]}"
+    if not slug:
+        return f"sk-{uuid.uuid4().hex[:8]}"
+    if slug in _WIN_RESERVED:
+        slug = f"{slug}-skill"
+    return slug[:64]
 
 
 def _generate_skill_id(name: str = "") -> str:
@@ -47,7 +58,9 @@ def _generate_skill_id(name: str = "") -> str:
 
 
 def _is_safe_id(skill_id: str) -> bool:
-    return bool(skill_id) and "/" not in skill_id and "\\" not in skill_id and ".." not in skill_id
+    if not skill_id:
+        return False
+    return bool(re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", skill_id))
 
 
 def _get_registry_entry(skill_id: str) -> dict | None:
@@ -58,8 +71,12 @@ def _get_registry_entry(skill_id: str) -> dict | None:
     return None
 
 
+def _sanitize_yaml_string(s: str) -> str:
+    return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").replace("\r", "")
+
+
 def _scaffold_content(name: str, description: str = "") -> str:
-    desc = description.replace('"', '\\"') if description else "Use when [trigger]"
+    desc = _sanitize_yaml_string(description) if description else "Use when [trigger]"
     return f'---\nname: {_slugify(name)}\ndescription: "{desc}"\n---\n\n{_BODY_MARKER}\n'
 
 
@@ -82,15 +99,13 @@ def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -
 
     path = _skill_path(skill_id)
     if path.exists() and description:
-        content = path.read_text(encoding="utf-8")
-        import re as _re
-        content = _re.sub(
-            r'(description:\s*")[^"]*(")',
-            lambda m: m.group(1) + description.replace('"', '\\"') + m.group(2),
-            content,
-            count=1,
-        )
-        path.write_text(content, encoding="utf-8")
+        lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+        safe_desc = _sanitize_yaml_string(description)
+        for i, line in enumerate(lines):
+            if line.startswith("description:"):
+                lines[i] = f'description: "{safe_desc}"\n'
+                break
+        path.write_text("".join(lines), encoding="utf-8")
 
     return {
         "status": "ok",

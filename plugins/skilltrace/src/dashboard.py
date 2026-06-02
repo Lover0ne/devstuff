@@ -715,7 +715,8 @@ def generate(no_open: bool = False) -> dict:
     out_path = out_dir / "dashboard.html"
     tmp_path = out_path.with_suffix(".tmp")
     tmp_path.write_text(html, encoding="utf-8")
-    tmp_path.replace(out_path)
+    import os
+    os.replace(str(tmp_path), str(out_path))
 
     total_skills = sum(len(p["skills"]) for p in data["projects"])
 

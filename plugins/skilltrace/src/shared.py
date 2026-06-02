@@ -24,7 +24,8 @@ def atomic_write_json(path: Path, data: dict) -> None:
     content = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     tmp = path.with_suffix(".tmp")
     tmp.write_text(content, encoding="utf-8")
-    tmp.replace(path)
+    import os
+    os.replace(str(tmp), str(path))
 
 
 
