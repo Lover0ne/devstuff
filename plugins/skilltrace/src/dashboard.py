@@ -13,7 +13,7 @@ from src.shared import skilltrace_dir, now_iso, receipt
 from src.registry import load_registry
 
 
-_MAX_DEPTH = 6
+_MAX_DEPTH = 10
 _SKIP_DIRS = {
     ".git", "node_modules", "__pycache__", ".venv", "venv",
     ".tox", ".mypy_cache", ".pytest_cache", "dist", "build",
