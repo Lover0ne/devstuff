@@ -82,6 +82,10 @@ def _save_registry(data: dict) -> None:
 
 
 def add_entry(entry: dict) -> dict:
+    import re
+    sid = entry.get("id", "")
+    if sid and not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid):
+        return error_receipt(f"Invalid skill ID: {sid}", "registry_add")
     with _registry_lock():
         reg = load_registry()
         existing_idx = None

@@ -288,6 +288,9 @@ def cmd_reindex() -> dict:
 def cmd_history(skill_id: str) -> dict:
     if not skill_id:
         return error_receipt("Skill ID required", "history")
+    import re
+    if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", skill_id):
+        return error_receipt(f"Invalid skill ID: {skill_id}", "history")
     entries = list_entries()
     entry = next((e for e in entries if e.get("id") == skill_id), None)
     if not entry:
