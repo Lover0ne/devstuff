@@ -8,6 +8,7 @@ Commands:
   skills              List all skills, filterable by project
   registry --add/--remove/--list   Registry CRUD
   skill-write --prepare JSON       Scaffold skill files
+  skill-meta  --set JSON           Update skill description and tags
 """
 
 import json
@@ -20,7 +21,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from src.shared import receipt, error_receipt, skillforge_dir, skills_dir
 from src.config import load_config
 from src.registry import add_entry, remove_entry, list_entries
-from src.skill_ops import prepare_create, prepare_new_version
+from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 
 def cmd_setup() -> dict:
@@ -30,7 +31,7 @@ def cmd_setup() -> dict:
         d.mkdir(parents=True, exist_ok=True)
     load_config()
     result = receipt("ok", "setup_complete", str(base))
-    result["additionalContext"] = "Skillforge ready. Use /skillforge:launch to generate utility skills for this project."
+    result["additionalContext"] = "Skillforge ready. Use /skillforge-launch to generate utility skills for this project."
     return result
 
 
@@ -209,6 +210,23 @@ def main():
             result = cmd_skill_write(metadata_json)
             print(json.dumps(result))
 
+        elif command == "skill-meta":
+            if len(sys.argv) < 3 or sys.argv[2] != "--set":
+                print(json.dumps(error_receipt("Usage: skill-meta --set JSON", "skill_meta")), file=sys.stderr)
+                sys.exit(1)
+            meta_json = sys.argv[3] if len(sys.argv) > 3 else sys.stdin.read()
+            try:
+                meta = json.loads(meta_json)
+            except json.JSONDecodeError as e:
+                print(json.dumps(error_receipt(f"Invalid JSON: {e}", "skill_meta")), file=sys.stderr)
+                sys.exit(1)
+            skill_id = meta.get("id")
+            if not skill_id:
+                print(json.dumps(error_receipt("Missing skill id", "skill_meta")), file=sys.stderr)
+                sys.exit(1)
+            result = update_skill_meta(skill_id, meta.get("description", ""), meta.get("tags"))
+            print(json.dumps(result))
+
         else:
             print(json.dumps(error_receipt(f"Unknown command: {command}", "cli")), file=sys.stderr)
             sys.exit(1)
@@ -217,7 +235,7 @@ def main():
         print(json.dumps(error_receipt(f"Invalid JSON input: {e}", command)), file=sys.stderr)
         sys.exit(1)
     except Exception as e:
-        print(json.dumps(error_receipt(str(e), command)), file=sys.stderr)
+        print(json.dumps(error_receipt(f"{type(e).__name__}: {e}", command)), file=sys.stderr)
         sys.exit(1)
 
 

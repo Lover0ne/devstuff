@@ -1,6 +1,7 @@
 """Shared utilities for Skillforge."""
 
 import json
+import os
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -13,7 +14,7 @@ def skillforge_dir() -> Path:
 
 
 def skills_dir() -> Path:
-    return Path.cwd() / ".claude" / "skills"
+    return Path.cwd().resolve() / ".claude" / "skills"
 
 
 def now_iso() -> str:
@@ -25,7 +26,7 @@ def atomic_write_json(path: Path, data: dict) -> None:
     content = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
     tmp = path.with_suffix(".tmp")
     tmp.write_text(content, encoding="utf-8")
-    tmp.replace(path)
+    os.replace(str(tmp), str(path))
 
 
 def receipt(status: str, action: str, file: str) -> dict:

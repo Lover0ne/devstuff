@@ -5,17 +5,22 @@ description: "Use when {description}"
 
 # {name}
 
-## What
-One paragraph: what this skill does and what it produces.
+## Overview
 
-## Why
-One paragraph: the problem it solves.
+Core principle in 1-2 sentences.
 
-## How
-Step-by-step instructions with exact commands and file paths.
+## When to Use
 
-## Files
-- `path/to/file.ext` — description
+Bullet list of symptoms and use cases. When NOT to use.
 
-## Tags
-tag1, tag2, tag3
+## Quick Reference
+
+Table or bullets for scanning key values, configs, operations.
+
+## Implementation
+
+Step-by-step instructions with exact commands, code, and configs.
+
+## Common Mistakes
+
+What goes wrong and how to fix it.
