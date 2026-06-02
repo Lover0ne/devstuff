@@ -4,17 +4,44 @@
 
 <p align="center"><strong>Turn any skill into a reusable template. Instantly.</strong></p>
 
-Copycat is a Claude Code plugin that takes any skill and strips out every project-specific value (paths, names, URLs, keys, emails, you name it) and replaces them with smart `{{placeholders}}`. The result is a portable template anyone can use.
-
 ---
 
-## The Problem
+## Why I built this
 
-Skills are powerful, but they're born specific. A skill that deploys *your* app to *your* server with *your* API keys is useless to anyone else, and honestly risky to share. Manually sanitizing a skill means reading every line, spotting every hardcoded value, and replacing them consistently. Miss one and you've leaked a path, a name, or worse.
+I had a skill that set up auth perfectly for one of my projects. Clerk, Drizzle, NextJS, the whole thing. Step by step, every command, every config. It worked great.
 
-## The Solution
+Then a friend asked me to share it. And I realized I couldn't. The skill was full of my paths, my API keys, my project name, my repo URL. Sharing it meant either leaking all of that or spending twenty minutes reading every line and replacing values by hand. And if I missed one, I'd just handed someone my credentials.
 
-One command. Copycat reads the skill, identifies every project-specific value, and replaces them with descriptive placeholders. You pick the output format: a sanitized template for manual use, or a full questionnaire that collects inputs automatically.
+So I built Copycat. Point it at any skill and it strips out everything project-specific: paths, names, URLs, keys, emails, domains. It replaces them with smart `{{placeholders}}` that describe what each value is. The result is a clean, portable template that anyone can use without knowing anything about the original project.
+
+## How it works
+
+```
+/copycat-clone my-deploy-skill
+```
+
+Copycat asks you one question: do you want a raw template or a questionnaire? Then it:
+
+1. Finds the skill
+2. Reads every line and identifies project-specific values
+3. Replaces them with descriptive `{{placeholders}}`
+4. Saves the result as a new skill
+
+That's it. Two modes:
+
+| Mode | What you get | Best for |
+|------|-------------|----------|
+| **Sanitize only** | Raw `{{placeholders}}` with a reference table | Sharing, auditing, manual editing |
+| **Questionnaire** | Adds a setup section that asks the user for every value before running | Templates that others can invoke directly |
+
+## Placeholder rules
+
+Copycat is smart about how it replaces values:
+
+- **Same value, same role:** one placeholder, asked once. If `myapp` appears 15 times as the project name, it becomes `{{project_name}}` everywhere.
+- **Same type, different role:** separate placeholders. A sender email and recipient email become `{{email_from}}` and `{{email_to}}`.
+- **Nested paths:** `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`. Only the variable parts change.
+- **Never touched:** tool names, frameworks, standard commands, language keywords. Those stay exactly as they are.
 
 ## Install
 
@@ -25,54 +52,6 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 /plugin install copycat@devstuff
 ```
 
-## Usage
-
-```
-/copycat-clone <skill-name>
-```
-
-Copycat will:
-
-1. **Ask** which mode you want: **sanitize only** or **questionnaire**
-2. **Find** the skill in your project or installed plugins
-3. **Analyze** it for project-specific values (paths, names, URLs, secrets, etc.)
-4. **Replace** each value with a descriptive `{{placeholder}}`
-5. **Save** the template as `<skill-name>-copycat`
-
-### Modes
-
-| Mode | What you get | Best for |
-|------|-------------|----------|
-| **Sanitize only** | Raw `{{placeholders}}` with a reference table | Sharing, auditing, manual editing |
-| **Questionnaire** | Setup section that collects values via `AskUserQuestion` | Reusable templates others invoke directly |
-
-### Example
-
-```
-/copycat-clone my-deploy-skill
-```
-
-Produces a `my-deploy-skill-copycat` skill where `/Users/me/myapp` becomes `{{project_dir}}` and `acme-api.com` becomes `{{api_domain}}`.
-
-## Placeholder Rules
-
-- **Same value, same role:** single placeholder, asked once.
-- **Same type, different role:** separate placeholders (e.g. `{{email_from}}` vs `{{email_to}}`).
-- **Nested composition:** `/Users/me/projects/myapp/src` becomes `{{project_dir}}/{{project_name}}/src`.
-- **Never anonymized:** tool names, frameworks, standard commands, and language keywords stay as-is.
-
-## Project Structure
-
-```
-copycat/
-├── .claude-plugin/
-│   └── plugin.json       # Plugin manifest
-├── commands/
-│   └── clone.md          # /copycat-clone command
-└── skills/
-    └── .gitkeep
-```
-
 ## Requirements
 
 - [Claude Code](https://docs.anthropic.com/en/docs/claude-code) CLI
@@ -80,7 +59,3 @@ copycat/
 ## License
 
 MIT
-
----
-
-*Share skills without sharing secrets.*
