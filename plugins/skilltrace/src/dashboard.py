@@ -378,7 +378,10 @@ a:hover { text-decoration: underline; }
   <div class="modal">
     <div class="modal-header">
       <h3 id="modalTitle"></h3>
-      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn" id="copySkillBtn" onclick="copyCurrentSkill(this)" style="font-size:12px;padding:4px 10px">Copy</button>
+        <button class="modal-close" onclick="closeModal()">&times;</button>
+      </div>
     </div>
     <div class="modal-tabs" id="modalTabs"></div>
     <div class="modal-body">
@@ -799,6 +802,15 @@ function buildDiff(la, lb, trace, D, max) {
 }
 
 function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function copyCurrentSkill(btn) {
+  if (!modalSkill) return;
+  const current = modalSkill.versions.find(v => v.current);
+  if (!current) return;
+  navigator.clipboard.writeText(current.content).then(() => {
+    const orig = btn.textContent; btn.textContent = 'Copied!';
+    setTimeout(() => btn.textContent = orig, 1000);
+  });
+}
 function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); } catch(e) { return s; } }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
