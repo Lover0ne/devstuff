@@ -136,7 +136,12 @@ def _collect_data() -> dict:
         enriched_skills = []
         for s in proj_skills:
             sid = s.get("id", "")
+            if not _is_safe_skill_id(sid):
+                continue
             ver = s.get("version", 1)
+            skill_content = _read_skill_content(proj["path"], sid)
+            if not skill_content:
+                continue
             enriched_skills.append({
                 "id": sid,
                 "name": s.get("name", sid),

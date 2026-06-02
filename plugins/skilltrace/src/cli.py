@@ -136,7 +136,13 @@ def cmd_registry_list(project_only: bool = False) -> dict:
 def cmd_reminder(hook_data: dict) -> dict:
     if not _check_marker_exists():
         return {}
-    project_id = _read_project_id()
+    marker = _find_marker()
+    marker_data = read_marker(marker) if marker else None
+    if not marker_data:
+        return {}
+    if marker_data.get("paused"):
+        return {}
+    project_id = marker_data.get("project_id")
     if not project_id:
         return {}
     tp = hook_data.get("transcript_path", "")

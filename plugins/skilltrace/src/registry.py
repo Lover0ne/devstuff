@@ -17,8 +17,7 @@ def _lock_path() -> Path:
     return _registry_path().with_suffix(".lock")
 
 
-_LOCK_TIMEOUT = 10
-_LOCK_RETRY = 0.1
+_LOCK_TIMEOUT = 30
 
 
 @contextmanager
@@ -27,6 +26,7 @@ def _registry_lock():
     lock.parent.mkdir(parents=True, exist_ok=True)
     import time
     fd = None
+    delay = 0.05
     deadline = time.monotonic() + _LOCK_TIMEOUT
     while True:
         try:
@@ -40,7 +40,8 @@ def _registry_lock():
                     pass
                 fd = open(lock, "x")
                 break
-            time.sleep(_LOCK_RETRY)
+            time.sleep(delay)
+            delay = min(delay * 2, 1.0)
     try:
         yield
     finally:

@@ -204,9 +204,19 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
         current_version = 1
     if current_version < 1 or current_version > 10000:
         return error_receipt(f"Invalid version: {current_version}", "skill_new_version")
-    archived = _archive_current(skill_id, current_version)
-    if _skill_path(skill_id).exists() and archived is None:
-        return error_receipt("Failed to archive current version", "skill_new_version")
+    current_path = _skill_path(skill_id)
+    incomplete = False
+    if current_path.exists():
+        try:
+            incomplete = _BODY_MARKER in current_path.read_text(encoding="utf-8")
+        except OSError:
+            pass
+    if incomplete:
+        archived = None
+    else:
+        archived = _archive_current(skill_id, current_version)
+        if current_path.exists() and archived is None:
+            return error_receipt("Failed to archive current version", "skill_new_version")
 
     path = _skill_path(skill_id)
     path.write_text(
