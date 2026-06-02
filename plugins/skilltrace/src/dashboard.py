@@ -492,7 +492,7 @@ function viewSkill(idx) {
   const s = modalSkill;
   const current = s.versions.find(v => v.current);
   if (!current) return;
-  document.getElementById('modalTitle').innerHTML = '<span style="color:var(--accent)">/</span>' + esc(s.name);
+  document.getElementById('modalTitle').innerHTML = '<span style="color:var(--accent);font-size:24px;font-weight:700;margin-right:2px">/</span>' + esc(s.name);
   const hasManyVersions = s.versions.length > 1;
   let tabs = `<div class="modal-tab active" onclick="switchTab('content')">Content (v${s.current_version})</div>`;
   if (hasManyVersions) {
