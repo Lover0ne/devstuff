@@ -80,6 +80,43 @@ No configuration. No context pollution. No extra prompts.
 - **Pause anytime.** `/skilltrace-pause` to stop, `/skilltrace-resume` to restart.
 - **Cross-platform.** macOS, Linux, Windows.
 
+## Dashboard
+
+Browse your skills visually. Run `/skilltrace-dashboard` or ask Claude to open it.
+
+<p align="center">
+  <img width="100%" alt="Dashboard light mode" src="https://www-skilltrace.vercel.app/screenshots/dashboard-light.png" />
+</p>
+
+<details>
+<summary>Dark mode</summary>
+<p align="center">
+  <img width="100%" alt="Dashboard dark mode" src="https://www-skilltrace.vercel.app/screenshots/dashboard-dark.png" />
+</p>
+</details>
+
+<details>
+<summary>Skill viewer with version history</summary>
+<p align="center">
+  <img width="100%" alt="Skill modal" src="https://www-skilltrace.vercel.app/screenshots/dashboard-modal.png" />
+</p>
+</details>
+
+<details>
+<summary>Side-by-side diff</summary>
+<p align="center">
+  <img width="100%" alt="Version compare" src="https://www-skilltrace.vercel.app/screenshots/dashboard-compare.png" />
+</p>
+</details>
+
+<details>
+<summary>Mobile</summary>
+<p align="center">
+  <img width="300" alt="Mobile view" src="https://www-skilltrace.vercel.app/screenshots/dashboard-mobile.png" />
+  <img width="300" alt="Mobile menu" src="https://www-skilltrace.vercel.app/screenshots/dashboard-mobile-menu.png" />
+</p>
+</details>
+
 ## Commands
 
 | Command | What it does |
