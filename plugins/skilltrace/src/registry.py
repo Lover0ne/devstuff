@@ -17,15 +17,36 @@ def _lock_path() -> Path:
     return _registry_path().with_suffix(".lock")
 
 
+_LOCK_TIMEOUT = 10
+_LOCK_RETRY = 0.1
+
+
 @contextmanager
 def _registry_lock():
     lock = _lock_path()
     lock.parent.mkdir(parents=True, exist_ok=True)
+    import time
+    fd = None
+    deadline = time.monotonic() + _LOCK_TIMEOUT
+    while True:
+        try:
+            fd = open(lock, "x")
+            break
+        except FileExistsError:
+            if time.monotonic() > deadline:
+                try:
+                    lock.unlink()
+                except OSError:
+                    pass
+                fd = open(lock, "x")
+                break
+            time.sleep(_LOCK_RETRY)
     try:
-        lock.touch(exist_ok=True)
         yield
     finally:
         try:
+            if fd:
+                fd.close()
             lock.unlink(missing_ok=True)
         except OSError:
             pass

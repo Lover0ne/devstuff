@@ -27,12 +27,19 @@ def _is_safe_skill_id(sid: str) -> bool:
     return bool(sid) and bool(_re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid))
 
 
+_SCAN_TIMEOUT = 120
+
+
 def _find_projects() -> list[dict]:
+    import time
     projects = []
     seen_ids = set()
+    scan_start = time.monotonic()
 
     def _walk(directory: Path, depth: int):
         if depth > _MAX_DEPTH:
+            return
+        if time.monotonic() - scan_start > _SCAN_TIMEOUT:
             return
         try:
             entries = sorted(directory.iterdir())
@@ -342,6 +349,10 @@ a:hover { text-decoration: underline; }
 </style>
 </head>
 <body>
+<div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column">
+  <div style="font-size:20px;font-weight:600;color:var(--accent-dark);margin-bottom:8px"><span style="color:var(--accent)">/</span>skilltrace</div>
+  <div style="font-size:13px;color:var(--fg3)">Loading dashboard...</div>
+</div>
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-brand">
@@ -807,6 +818,7 @@ function enableDragScroll(el) {
 document.querySelectorAll('.project-list, .content').forEach(enableDragScroll);
 
 init();
+document.getElementById('loading').style.display='none';
 </script>
 </body>
 </html>"""

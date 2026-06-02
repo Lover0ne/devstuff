@@ -28,7 +28,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
-from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, project_skilltrace_dir, find_or_create_project_id, now_iso
+from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, project_skilltrace_dir, find_or_create_project_id, now_iso, write_marker, read_marker
 from src.config import load_config, is_enabled, set_enabled
 from src.registry import add_entry, remove_entry, list_entries
 from src.transcript import scrape_transcript
@@ -88,15 +88,10 @@ def cmd_init() -> dict:
 def cmd_skip() -> dict:
     current = Path.cwd().resolve()
     marker = current / ".skilltrace"
-    if marker.exists():
-        try:
-            data = json.loads(marker.read_text(encoding="utf-8"))
-            if data.get("project_id"):
-                return receipt("ok", "already_initialized", str(marker))
-        except Exception:
-            pass
-    data = {"declined": True, "created": now_iso()}
-    marker.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    existing = read_marker(marker)
+    if existing and existing.get("project_id"):
+        return receipt("ok", "already_initialized", str(marker))
+    write_marker(marker, {"declined": True, "created": now_iso()})
     return receipt("ok", "skipped", str(marker))
 
 
@@ -186,9 +181,9 @@ def cmd_pause() -> dict:
     marker = _find_marker()
     if not marker:
         return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "pause")
-    data = json.loads(marker.read_text(encoding="utf-8"))
+    data = read_marker(marker) or {}
     data["paused"] = True
-    marker.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    write_marker(marker, data)
     return receipt("ok", "paused", str(marker))
 
 
@@ -196,9 +191,9 @@ def cmd_resume() -> dict:
     marker = _find_marker()
     if not marker:
         return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "resume")
-    data = json.loads(marker.read_text(encoding="utf-8"))
+    data = read_marker(marker) or {}
     data.pop("paused", None)
-    marker.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    write_marker(marker, data)
     return receipt("ok", "resumed", str(marker))
 
 
@@ -206,23 +201,16 @@ def _read_project_id() -> str | None:
     marker = _find_marker()
     if not marker:
         return None
-    try:
-        data = json.loads(marker.read_text(encoding="utf-8"))
-        return data.get("project_id")
-    except Exception:
-        return None
+    data = read_marker(marker)
+    return data.get("project_id") if data else None
 
 
 def cmd_status() -> dict:
     entries = list_entries()
     project_id = _read_project_id()
     marker = _find_marker()
-    paused = False
-    if marker:
-        try:
-            paused = json.loads(marker.read_text(encoding="utf-8")).get("paused", False)
-        except Exception:
-            pass
+    marker_data = read_marker(marker) if marker else None
+    paused = bool(marker_data.get("paused")) if marker_data else False
     project_skills = [e for e in entries if e.get("project_id") == project_id] if project_id else []
     last_updated = max((e.get("updated", "") for e in entries), default="never")
     result = {
@@ -284,11 +272,13 @@ def cmd_reindex() -> dict:
                 name = line[2:].strip()
             if line.startswith("description:"):
                 description = line.split(":", 1)[1].strip().strip('"')
+        existing = next((e for e in list_entries() if e.get("id") == skill_id), None)
+        existing_tags = existing.get("tags", []) if existing else []
         add_entry({
             "id": skill_id,
             "name": name,
             "description": description,
-            "tags": [],
+            "tags": existing_tags,
             "project_id": project_id,
         })
         count += 1

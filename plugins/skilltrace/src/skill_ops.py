@@ -72,6 +72,7 @@ def _get_registry_entry(skill_id: str) -> dict | None:
 
 
 def _sanitize_yaml_string(s: str) -> str:
+    s = s.replace('\\"', '"').replace("\\\\", "\\")
     s = s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", " ").replace("\r", "")
     if s.startswith((":", "'", "{", "[", "*", "&", "!", "|", ">")):
         s = " " + s
@@ -89,6 +90,11 @@ def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -
     existing = _get_registry_entry(skill_id)
     if not existing:
         return error_receipt(f"Skill '{skill_id}' not found", "skill_meta")
+    path = _skill_path(skill_id)
+    if not path.exists():
+        return error_receipt(f"SKILL.md not found for '{skill_id}'. Write body first.", "skill_meta")
+    if _BODY_MARKER in path.read_text(encoding="utf-8"):
+        return error_receipt(f"Body not written yet for '{skill_id}'. Edit the marker first.", "skill_meta")
 
     update_data = {}
     if description:
@@ -125,7 +131,10 @@ def _archive_current(skill_id: str, version: int) -> Path | None:
         return None
     dst = _version_path(skill_id, version)
     dst.parent.mkdir(parents=True, exist_ok=True)
-    src.rename(dst)
+    try:
+        src.rename(dst)
+    except OSError:
+        return None
     return dst
 
 
@@ -196,6 +205,8 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
     if current_version < 1 or current_version > 10000:
         return error_receipt(f"Invalid version: {current_version}", "skill_new_version")
     archived = _archive_current(skill_id, current_version)
+    if _skill_path(skill_id).exists() and archived is None:
+        return error_receipt("Failed to archive current version", "skill_new_version")
 
     path = _skill_path(skill_id)
     path.write_text(
