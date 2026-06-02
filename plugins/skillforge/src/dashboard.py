@@ -158,7 +158,7 @@ _HTML_TEMPLATE = r"""<!DOCTYPE html>
 :root {
   --bg: #faf8f5; --bg2: #ffffff; --bg3: #f5ede6;
   --fg: #4a2c2a; --fg2: #6b4a48; --fg3: #9a7d7b;
-  --accent: #c0392b; --accent2: #a93226; --accent-dark: #4a2c2a;
+  --accent: #8c6047; --accent2: #7a5340; --accent-dark: #5a3f33;
   --border: #ddd0c8; --card-shadow: 0 2px 8px rgba(74,44,42,0.06);
   --diff-add: #e6f5ec; --diff-rm: #fbe8e8;
   --diff-add-fg: #1a5c32; --diff-rm-fg: #8b2525;
@@ -168,7 +168,7 @@ _HTML_TEMPLATE = r"""<!DOCTYPE html>
 [data-theme="dark"] {
   --bg: #1a0f0e; --bg2: #261816; --bg3: #3a2220;
   --fg: #f0dcd8; --fg2: #c8a8a4; --fg3: #7a5a58;
-  --accent: #e74c3c; --accent2: #f06050; --accent-dark: #f0dcd8;
+  --accent: #b08068; --accent2: #c09078; --accent-dark: #dcc4b8;
   --border: #3a2a28; --card-shadow: 0 2px 8px rgba(0,0,0,0.3);
   --diff-add: #0f2a1a; --diff-rm: #2a0f0f;
   --diff-add-fg: #6ee7b7; --diff-rm-fg: #fca5a5;
@@ -297,7 +297,7 @@ a:hover { text-decoration: underline; }
 </head>
 <body>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column">
-  <div style="font-size:20px;font-weight:600;color:var(--accent-dark);margin-bottom:8px"><span style="color:var(--accent)">/</span>skillforge</div>
+  <div style="font-size:20px;font-weight:600;color:var(--accent-dark);margin-bottom:8px"><span style="color:#c0392b">/</span>skillforge</div>
   <div style="font-size:13px;color:var(--fg3);margin-bottom:20px">Loading dashboard...</div>
   <div style="width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:40%;height:100%;background:var(--accent);border-radius:2px;animation:loadSlide 1.2s ease-in-out infinite"></div></div>
   <style>@keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>
@@ -387,7 +387,7 @@ function renderSkills() {
 function viewSkill(idx) {
   const skills = getFilteredSkills(); modalSkill = skills[idx]; const s = modalSkill;
   const current = s.versions.find(v => v.current); if (!current) return;
-  document.getElementById('modalTitle').innerHTML = '<span style="color:var(--accent);font-size:24px;font-weight:700;margin-right:2px">/</span>' + esc(s.name);
+  document.getElementById('modalTitle').innerHTML = '<span style="color:#c0392b;font-size:24px;font-weight:700;margin-right:2px">/</span>' + esc(s.name);
   const hasManyVersions = s.versions.filter(v => !v.capped).length > 1;
   let tabs = `<div class="modal-tab active" onclick="switchTab('content')">Content (v${s.current_version})</div>`;
   if (hasManyVersions) { tabs += `<div class="modal-tab" onclick="switchTab('history')">History</div><div class="modal-tab" onclick="switchTab('compare')">Compare</div>`; }
