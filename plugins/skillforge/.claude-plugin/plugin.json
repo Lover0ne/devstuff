@@ -11,7 +11,8 @@
   "commands": [
     "./commands/skillforge-launch.md",
     "./commands/skillforge-status.md",
-    "./commands/skillforge-skills.md"
+    "./commands/skillforge-skills.md",
+    "./commands/skillforge-dashboard.md"
   ],
   "agents": [
     "./agents/skill-writer.md"

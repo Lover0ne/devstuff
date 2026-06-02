@@ -9,6 +9,7 @@ Commands:
   registry --add/--remove/--list   Registry CRUD
   skill-write --prepare JSON       Scaffold skill files
   skill-meta  --set JSON           Update skill description and tags
+  dashboard   [--no-open]          Generate and open interactive HTML dashboard
 """
 
 import json
@@ -225,6 +226,12 @@ def main():
                 print(json.dumps(error_receipt("Missing skill id", "skill_meta")), file=sys.stderr)
                 sys.exit(1)
             result = update_skill_meta(skill_id, meta.get("description", ""), meta.get("tags"))
+            print(json.dumps(result))
+
+        elif command == "dashboard":
+            from src.dashboard import generate
+            no_open = "--no-open" in sys.argv
+            result = generate(no_open=no_open)
             print(json.dumps(result))
 
         else:
