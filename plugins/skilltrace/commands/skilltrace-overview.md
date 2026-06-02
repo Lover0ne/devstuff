@@ -1,6 +1,7 @@
 ---
 name: overview
 description: Use when user wants a global view of all Skilltrace skills across every project. "show all projects", "skilltrace overview", "how many skills across all projects", "global skill summary".
+disable-model-invocation: true
 ---
 
 Show cross-project skill overview:

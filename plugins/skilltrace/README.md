@@ -87,16 +87,13 @@ No configuration. No context pollution. No extra prompts. Just work.
 
 | Command | What it does |
 |---------|-------------|
-| `/skilltrace-init` | Enable Skilltrace for current project |
-| `/skilltrace-skip` | Decline Skilltrace for current project |
-| `/skilltrace-skills` | List all skills with descriptions, versions, and project info |
-| `/skilltrace-overview` | Show skills across all projects |
-| `/skilltrace-history` | Show version history of a specific skill |
-| `/skilltrace-status` | Show tracking status and skill counts |
+| `/skilltrace-dashboard` | Open the interactive skill dashboard in your browser |
 | `/skilltrace-pause` | Pause activity tracking |
 | `/skilltrace-resume` | Resume activity tracking |
-| `/skilltrace-dashboard` | Open the skill dashboard |
-| `/skilltrace-reindex` | Rebuild skill registry from files on disk |
+
+You can also ask Claude in natural language: "open the skilltrace dashboard", "pause skilltrace", "resume tracking".
+
+Additional commands are available for advanced use (`skilltrace-skills`, `skilltrace-overview`, `skilltrace-history`, `skilltrace-status`, `skilltrace-reindex`, `skilltrace-init`, `skilltrace-skip`).
 
 ## Project Structure
 
