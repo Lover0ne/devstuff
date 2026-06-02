@@ -153,12 +153,12 @@ class TestProjectId:
         assert path == subdir / ".skilltrace"
         assert path.exists()
 
-    def test_walks_up(self, tmp_path):
+    def test_does_not_walk_up(self, tmp_path):
         from src.shared import find_or_create_project_id
         marker = tmp_path / ".skilltrace"
         marker.write_text(json.dumps({"project_id": "proj-root", "created": "2026-01-01T00:00:00Z"}))
         subdir = tmp_path / "src" / "deep"
         subdir.mkdir(parents=True)
         pid, path = find_or_create_project_id(subdir)
-        assert pid == "proj-root"
-        assert path == marker
+        assert pid != "proj-root"
+        assert path == subdir / ".skilltrace"

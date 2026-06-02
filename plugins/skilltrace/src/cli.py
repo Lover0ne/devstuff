@@ -36,15 +36,8 @@ from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 
 def _find_marker() -> Path | None:
-    current = Path.cwd().resolve()
-    while True:
-        marker = current / ".skilltrace"
-        if marker.exists():
-            return marker
-        parent = current.parent
-        if parent == current:
-            return None
-        current = parent
+    marker = Path.cwd().resolve() / ".skilltrace"
+    return marker if marker.exists() else None
 
 
 def _check_marker_exists() -> bool:
@@ -210,19 +203,14 @@ def cmd_resume() -> dict:
 
 
 def _read_project_id() -> str | None:
-    current = Path.cwd().resolve()
-    while True:
-        marker = current / ".skilltrace"
-        if marker.exists():
-            try:
-                data = json.loads(marker.read_text(encoding="utf-8"))
-                return data.get("project_id")
-            except Exception:
-                return None
-        parent = current.parent
-        if parent == current:
-            return None
-        current = parent
+    marker = _find_marker()
+    if not marker:
+        return None
+    try:
+        data = json.loads(marker.read_text(encoding="utf-8"))
+        return data.get("project_id")
+    except Exception:
+        return None
 
 
 def cmd_status() -> dict:

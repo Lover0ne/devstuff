@@ -11,19 +11,11 @@ if echo "$INPUT" | grep -q '"parent_tool_use_id"\s*:\s*"'; then
 fi
 
 # --- Stage 1: Init gate ---
-DIR="$(pwd)"
+MARKER_PATH="$(pwd)/.skilltrace"
 MARKER_FOUND=false
-MARKER_PATH=""
-while true; do
-    if [ -f "$DIR/.skilltrace" ]; then
-        MARKER_FOUND=true
-        MARKER_PATH="$DIR/.skilltrace"
-        break
-    fi
-    PARENT="$(dirname "$DIR")"
-    [ "$PARENT" = "$DIR" ] && break
-    DIR="$PARENT"
-done
+if [ -f "$MARKER_PATH" ]; then
+    MARKER_FOUND=true
+fi
 
 if [ "$MARKER_FOUND" = false ]; then
     # Allow init/skip wrapper commands through to avoid deadlock

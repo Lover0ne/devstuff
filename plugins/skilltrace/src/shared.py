@@ -46,26 +46,17 @@ _SKILLTRACE_MARKER = ".skilltrace"
 
 
 def find_or_create_project_id(start_dir: Path | None = None) -> tuple[str, Path]:
-    start = start_dir or Path.cwd()
-    current = start.resolve()
-    found_marker = None
-    while True:
-        marker = current / _SKILLTRACE_MARKER
-        if marker.exists():
-            try:
-                data = json.loads(marker.read_text(encoding="utf-8"))
-                pid = data.get("project_id")
-                if pid:
-                    return pid, marker
-                found_marker = marker
-            except (json.JSONDecodeError, OSError):
-                found_marker = marker
-            break
-        parent = current.parent
-        if parent == current:
-            break
-        current = parent
-    target = found_marker or (start.resolve() / _SKILLTRACE_MARKER)
+    start = (start_dir or Path.cwd()).resolve()
+    marker = start / _SKILLTRACE_MARKER
+    if marker.exists():
+        try:
+            data = json.loads(marker.read_text(encoding="utf-8"))
+            pid = data.get("project_id")
+            if pid:
+                return pid, marker
+        except (json.JSONDecodeError, OSError):
+            pass
+    target = marker
     project_id = f"proj-{uuid.uuid4().hex[:16]}"
     data = {"project_id": project_id, "created": now_iso()}
     target.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
