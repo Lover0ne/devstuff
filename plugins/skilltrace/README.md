@@ -24,7 +24,7 @@ I also looked at what other plugins were doing. Most of them ship with dozens of
 
 So I thought: why am I doing this manually when AI is right here? And why does it have to be this complicated?
 
-That's how Skilltrace was born. A plugin that watches you work, figures out what's worth keeping, and writes the skill for you. No server, no backend, no config files. You never stop working, you never write documentation, you never think about it. Your effort just compounds on its own.
+That's how Skilltrace was born. A plugin that watches you work, figures out what's worth keeping, and writes the skill for you. No server, no backend, no config files. You never stop working, you never document anything by hand, you never think about it. Your effort just compounds on its own.
 
 ## How it works
 
