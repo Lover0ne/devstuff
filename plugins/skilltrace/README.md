@@ -10,44 +10,41 @@
 
 <p align="center"><a href="https://www-skilltrace.vercel.app/">Visit the official website</a></p>
 
-Skilltrace is a Claude Code plugin that silently watches your coding sessions and converts completed tasks into replayable, self-contained skills. You don't have to do anything.
-
 ---
 
-## The Problem
+## Why I built this
 
-Skills are the most powerful invention in agentic AI. They turn one-time work into reusable knowledge. So I asked myself: why not leverage them at every possible opportunity?
+I'm lazy. Not the bad kind of lazy, the kind that hates doing the same thing twice. I think that's what drives most of us to code in the first place: if I can automate it, I will.
 
-But there are two sides to this problem.
+But here's what kept happening. I'd spend an hour setting up auth, configuring a deploy pipeline, wiring up an MCP server. Real work, good work. Then the session would end and all of that knowledge would just vanish. Next time I needed the same thing, I'd start over. Same research, same trial and error, same cost.
 
-**You can't keep up.** Every time I set up auth, configured a CI pipeline, or wired up an MCP server, I knew that knowledge would evaporate at the end of the session. Next time, I'd start from scratch. Same research, same trial and error, same cost. I wanted to capture everything, but I also just wanted to *work on my projects*. Writing skills means stopping, reflecting, documenting steps, structuring files. It's a second job on top of the actual job.
+I knew the answer was skills. Write down what you did, step by step, so Claude can replay it next time. But writing a skill means stopping what you're doing, reflecting on every step, structuring it into a file, making it generic enough to reuse. It's a second job on top of the actual job. And I'm too lazy for that.
 
-**Plugins can't keep up either.** Many plugins ship with dozens of skills and keep adding more with every update. The intention is good, but the result is chaos: duplicate skills, overlapping instructions, outdated steps that no one cleans up. Your agent ends up drowning in a pile of skills it can't prioritize, and you end up with more noise than signal. More skills doesn't mean better results.
+So I thought: why am I doing this manually when AI is right here?
 
-Skilltrace takes a different approach. It doesn't ship a library of pre-made skills. It **learns yours**, from real work, in your specific stack, with your specific tools. Every skill is earned, not assumed. No duplicates, no bloat, no guesswork.
+That's how Skilltrace was born. A plugin that watches you work, figures out what's worth keeping, and writes the skill for you. You never stop working, you never write documentation, you never think about it. Your effort just compounds on its own.
 
-**Why am I doing this when AI can do it for me?** That's how Skilltrace was born.
+## What it does
 
-## The Idea
+Skilltrace is a silent background assistant. It doesn't interrupt you, doesn't pollute your context, doesn't ask questions.
 
-Skilltrace is a silent assistant that works alongside you. It doesn't interrupt. It doesn't pollute your context. It doesn't ask questions.
+While you focus on your project, it:
 
-While you focus on your project, Skilltrace runs in the background:
-
-- **Observes** your conversations and tool usage across sessions
-- **Detects** when meaningful, reproducible work is completed
-- **Generates** specific, self-contained skills with exact steps, commands, and file paths
+- **Watches** what you build across sessions
+- **Detects** when something meaningful and reproducible is completed
+- **Generates** a self-contained skill with exact steps, commands, and file references
 - **Versions** skills automatically when your approach evolves
-- **Organizes** everything by project, searchable and ready to replay
+- **Organizes** everything per project, browsable through a visual dashboard
 
-You work. It learns. Your effort compounds.
+You work. It learns. That's it.
 
-## Why It Matters
+## Why it matters
 
-- **Stop reinventing the wheel.** What you build once becomes a reusable recipe forever.
-- **Cut costs.** Skills let Claude replay proven approaches in seconds instead of reasoning from scratch every session.
-- **Share knowledge.** Skills are portable files. Drop them in a shared folder and your entire team benefits.
-- **Never start from zero.** Every project feeds your skill library. The more you use Claude, the faster it gets.
+Every time you solve a problem, that solution either gets captured or gets lost. Most of the time it gets lost because nobody has time to document it.
+
+Skilltrace changes that equation. Your work becomes a growing library of recipes that Claude can replay instantly. No reasoning from scratch, no re-discovering solutions, no wasted tokens repeating what you already figured out.
+
+And because skills are just files, you can share them. Drop a skill in a shared folder and your whole team gets the benefit of what one person figured out once.
 
 ## Install
 
@@ -58,66 +55,42 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 /plugin install skilltrace@devstuff
 ```
 
-That's it. Skilltrace activates on your next session. On first run, it introduces itself and asks if you want to enable tracking for the current project.
+That's it. On your next session, Skilltrace introduces itself and asks if you want to enable tracking. Say yes and forget about it.
 
-## How It Works
+## How it works
 
 | When | What happens |
 |------|-------------|
-| Session starts | Skilltrace activates silently via hook |
+| Session starts | Skilltrace activates silently |
 | You work normally | Code, debug, build, deploy. No interruptions |
-| After each prompt | Background agent evaluates if meaningful work was completed |
-| Skill-worthy task detected | A skill is generated and stored in `.claude/skills/` |
+| After each task | A background agent evaluates what was done |
+| Something worth keeping | A skill is generated in `.claude/skills/` |
 | Session ends | Final check to make sure nothing was missed |
 
-No configuration. No context pollution. No extra prompts. Just work.
+No configuration. No context pollution. No extra prompts.
 
 ## Features
 
-- **Zero overhead.** Runs via hooks, never touches your main conversation.
-- **Per-project tracking.** Opt-in per directory. Each project gets its own skill library.
-- **Smart versioning.** Skills evolve with your approach. Old versions are archived, not lost.
-- **Specific skills.** Not "how to set up auth" but "setting up NextJS auth with Clerk and Drizzle ORM".
-- **Self-contained.** Every skill is a complete recipe, replayable with zero prior context.
-- **Skill inventory.** Browse, search, and inspect all skills across projects.
-- **Pause/resume.** Disable tracking anytime with `/skilltrace-pause`.
-- **Cross-platform.** Works on macOS, Linux, and Windows.
+- **Zero overhead.** Runs via hooks in the background. Your main conversation stays clean.
+- **Per-project.** Each project has its own skill library. No cross-contamination.
+- **Smart versioning.** Skills evolve with your approach. Old versions are archived, never lost.
+- **Specific, not generic.** Not "how to set up auth" but "setting up NextJS auth with Clerk and Drizzle ORM".
+- **Self-contained.** Every skill is a complete recipe anyone can follow from scratch.
+- **Visual dashboard.** Browse all projects, skills, versions, and diffs in your browser.
+- **Pause anytime.** `/skilltrace-pause` to stop, `/skilltrace-resume` to restart.
+- **Cross-platform.** macOS, Linux, Windows.
 
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
-| `/skilltrace-dashboard` | Open the interactive skill dashboard in your browser |
-| `/skilltrace-pause` | Pause activity tracking |
-| `/skilltrace-resume` | Resume activity tracking |
+| `/skilltrace-dashboard` | Open the interactive dashboard in your browser |
+| `/skilltrace-pause` | Pause tracking for this project |
+| `/skilltrace-resume` | Resume tracking |
 
-You can also ask Claude in natural language: "open the skilltrace dashboard", "pause skilltrace", "resume tracking".
+You can also just ask Claude: "open the skilltrace dashboard", "pause skilltrace", "resume tracking".
 
-Additional commands are available for advanced use (`skilltrace-skills`, `skilltrace-overview`, `skilltrace-history`, `skilltrace-status`, `skilltrace-reindex`, `skilltrace-init`, `skilltrace-skip`).
-
-## Project Structure
-
-```
-skilltrace/
-├── .claude-plugin/
-│   └── plugin.json          # Plugin manifest
-├── hooks/
-│   ├── hooks.json           # Hook definitions (SessionStart, UserPromptSubmit, PreToolUse, SessionEnd)
-│   ├── gate.sh              # PreToolUse gate (init check + task boundary)
-│   └── wrapper.sh           # Cross-platform dispatcher
-├── src/
-│   ├── cli.py               # CLI entry point
-│   ├── config.py            # Enable/disable, configuration
-│   ├── registry.py          # Skill registry CRUD
-│   ├── shared.py            # Atomic file ops, project ID management
-│   ├── skill_ops.py         # Skill creation, versioning, archiving
-│   └── transcript.py        # Session transcript scraper
-├── agents/
-│   └── skilltracer.md       # Background agent that evaluates and generates skills
-├── commands/                 # Slash commands (init, skip, status, skills, overview, history, pause, resume, dashboard, reindex)
-└── skills/
-    └── skilltrace-manage/    # Built-in skill for managing generated skills
-```
+More commands are available for advanced use (`skilltrace-skills`, `skilltrace-overview`, `skilltrace-history`, `skilltrace-status`, `skilltrace-reindex`).
 
 ## Requirements
 
@@ -131,7 +104,3 @@ If you'd like to go the extra mile, <a href="https://paypal.me/LorenzoCampagna">
 ## License
 
 MIT
-
----
-
-*Stop writing skills. Start working. Let Skilltrace handle the rest.*
