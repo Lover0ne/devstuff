@@ -53,15 +53,45 @@ Available from the [devstuff marketplace](https://github.com/Lover0ne/devstuff):
 /plugin install skillforge@devstuff
 ```
 
+## Dashboard
+
+Browse your generated skills visually. Run `/skillforge-dashboard` or ask Claude to open it.
+
+<p align="center">
+  <img width="100%" alt="Skillforge dashboard" src="https://www-skilltrace.vercel.app/screenshots/skillforge-overview.png" />
+</p>
+
+<details>
+<summary>Skill viewer</summary>
+<p align="center">
+  <img width="100%" alt="Skill viewer" src="https://www-skilltrace.vercel.app/screenshots/skillforge-skill-viewer.png" />
+</p>
+</details>
+
+<details>
+<summary>Version compare</summary>
+<p align="center">
+  <img width="100%" alt="Version compare" src="https://www-skilltrace.vercel.app/screenshots/skillforge-compare.png" />
+</p>
+</details>
+
+<details>
+<summary>Mobile</summary>
+<p align="center">
+  <img width="300" alt="Mobile view" src="https://www-skilltrace.vercel.app/screenshots/skillforge-mobile.png" />
+</p>
+</details>
+
 ## Commands
 
 | Command | What it does |
 |---------|-------------|
 | `/skillforge-launch` | Analyze project and generate all utility skills |
-| `/skillforge-skills` | List generated skills |
-| `/skillforge-status` | Show skill counts and project info |
+| `/skillforge-dashboard` | Open the interactive dashboard in your browser |
 
-You can also just ask Claude: "generate skills for this project", "what skills did skillforge create".
+You can also just ask Claude: "generate skills for this project", "open skillforge dashboard".
+
+More commands available for inline use (`skillforge-skills`, `skillforge-status`).
 
 ## Requirements
 
