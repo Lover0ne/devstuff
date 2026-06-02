@@ -1,6 +1,5 @@
 ---
-description: Open Skilltrace dashboard in the browser. Shows all projects, skills, version history, and diffs. "open skilltrace dashboard", "show skill dashboard", "skilltrace UI".
-disable-model-invocation: true
+description: Use when user asks to open the Skilltrace dashboard. "open skilltrace dashboard", "show skill dashboard", "skilltrace UI", "open dashboard". Opens an interactive HTML page in the browser.
 ---
 
 Run the dashboard generator:
