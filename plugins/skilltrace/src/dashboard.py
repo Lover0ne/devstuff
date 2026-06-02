@@ -196,8 +196,8 @@ a:hover { text-decoration: underline; }
 .theme-btn:hover { background: var(--bg3); border-color: var(--accent); }
 .sidebar-link { font-size: 11px; color: var(--fg3); }
 .sidebar-link a { color: var(--accent); font-size: 11px; }
-.project-list { flex: 1; overflow-y: auto; padding: 12px; cursor: grab; }
-.project-list.dragging { cursor: grabbing; user-select: none; }
+.project-list { flex: 1; overflow-y: auto; padding: 12px; }
+.project-list.dragging { user-select: none; }
 .project-item { padding: 12px 14px; border-radius: 10px; cursor: pointer; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center; font-size: 14px; transition: all 0.15s; }
 .project-item:hover { background: var(--bg3); }
 .project-item.active { background: var(--accent); color: white; }
@@ -214,8 +214,8 @@ a:hover { text-decoration: underline; }
 .topbar { padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--bg2); display: flex; align-items: center; gap: 14px; }
 .search { flex: 1; padding: 10px 16px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 14px; outline: none; transition: border 0.2s; }
 .search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(95,168,211,0.15); }
-.content { flex: 1; overflow-y: auto; padding: 24px; cursor: grab; }
-.content.dragging { cursor: grabbing; user-select: none; }
+.content { flex: 1; overflow-y: auto; padding: 24px; }
+.content.dragging { user-select: none; }
 .empty { text-align: center; padding: 80px 20px; color: var(--fg3); }
 .empty h3 { font-size: 18px; margin-bottom: 8px; color: var(--fg2); }
 
@@ -407,10 +407,11 @@ function renderProjects() {
     <span>All Projects</span><span class="count">${totalSkills}</span></div>`;
   for (const p of DATA.projects) {
     const sel = currentProject === p.id ? 'active' : '';
-    const pausedStyle = p.paused ? 'opacity:0.6' : '';
-    const pausedBadge = p.paused ? ' <span style="font-size:9px;color:var(--fg3)">(paused)</span>' : '';
-    html += `<div class="project-item ${sel}" style="${pausedStyle}" onclick="selectProject('${p.id}')">
-      <div class="project-info"><div class="project-name">${esc(p.name)}${pausedBadge}</div><div class="project-path">${esc(p.path)}</div><div class="project-path" style="opacity:0.4">${p.id}</div></div>
+    const statusDot = p.paused
+      ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#888;margin-right:4px"></span><span style="font-size:10px;color:var(--fg3)">Paused</span>'
+      : '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 5px var(--accent);margin-right:4px"></span><span style="font-size:10px;color:var(--accent)">Active</span>';
+    html += `<div class="project-item ${sel}" onclick="selectProject('${p.id}')">
+      <div class="project-info"><div class="project-name">${esc(p.name)}</div><div class="project-path" title="${esc(p.path)}">${esc(p.path)}</div><div style="display:flex;align-items:center;margin-top:3px">${statusDot}</div></div>
       <span class="count">${p.skills.length}</span></div>`;
   }
   el.innerHTML = html;
