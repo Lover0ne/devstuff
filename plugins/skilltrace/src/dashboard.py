@@ -351,7 +351,9 @@ a:hover { text-decoration: underline; }
 <body>
 <div id="loading" style="position:fixed;inset:0;background:var(--bg);z-index:999;display:flex;align-items:center;justify-content:center;flex-direction:column">
   <div style="font-size:20px;font-weight:600;color:var(--accent-dark);margin-bottom:8px"><span style="color:var(--accent)">/</span>skilltrace</div>
-  <div style="font-size:13px;color:var(--fg3)">Loading dashboard...</div>
+  <div style="font-size:13px;color:var(--fg3);margin-bottom:20px">Loading dashboard...</div>
+  <div style="width:200px;height:3px;background:var(--border);border-radius:2px;overflow:hidden"><div style="width:40%;height:100%;background:var(--accent);border-radius:2px;animation:loadSlide 1.2s ease-in-out infinite"></div></div>
+  <style>@keyframes loadSlide{0%{transform:translateX(-100%)}100%{transform:translateX(350%)}}</style>
 </div>
 <div class="sidebar">
   <div class="sidebar-header">
