@@ -492,7 +492,7 @@ function viewSkill(idx) {
   const s = modalSkill;
   const current = s.versions.find(v => v.current);
   if (!current) return;
-  document.getElementById('modalTitle').textContent = s.name;
+  document.getElementById('modalTitle').innerHTML = '<span style="color:var(--accent)">/</span>' + esc(s.name);
   const hasManyVersions = s.versions.length > 1;
   let tabs = `<div class="modal-tab active" onclick="switchTab('content')">Content (v${s.current_version})</div>`;
   if (hasManyVersions) {
@@ -501,7 +501,9 @@ function viewSkill(idx) {
   }
   document.getElementById('modalTabs').innerHTML = tabs;
   document.getElementById('tabContent').className = 'tab-content active md-content';
-  document.getElementById('tabContent').innerHTML = renderMd(current.content);
+  const currentVh = (s.version_history || []).find(h => h.version === current.version);
+  const versionInfo = `<div style="font-size:12px;color:var(--fg3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Version ${current.version}${currentVh ? ' &middot; Created ' + fmtDate(currentVh.created_at) : ''} &middot; ${esc(s.description || '')}</div>`;
+  document.getElementById('tabContent').innerHTML = versionInfo + renderMd(current.content);
   if (hasManyVersions) {
     renderTimeline();
     renderCompare();
@@ -569,7 +571,9 @@ function showMoreTimeline() {
 
 function showVersionInModal(vIdx) {
   const v = modalSkill.versions[vIdx];
-  document.getElementById('tabContent').innerHTML = renderMd(v.content);
+  const vh = (modalSkill.version_history || []).find(h => h.version === v.version);
+  const info = `<div style="font-size:12px;color:var(--fg3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border)">Version ${v.version}${vh ? ' &middot; Created ' + fmtDate(vh.created_at) : ''}</div>`;
+  document.getElementById('tabContent').innerHTML = info + renderMd(v.content);
   document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   const contentTab = document.querySelector('.modal-tab');
