@@ -314,13 +314,28 @@ a:hover { text-decoration: underline; }
 .diff-rm { background: var(--diff-rm); color: var(--diff-rm-fg); }
 .diff-ctx { color: var(--fg3); }
 
+/* Hamburger */
+.hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; color: var(--fg); font-size: 20px; align-items: center; justify-content: center; flex-shrink: 0; }
+.sidebar-overlay { display: none; }
+
 /* Responsive */
-@media (max-width: 768px) {
+@media (max-width: 640px) {
   body { flex-direction: column; }
-  .sidebar { width: 100%; height: auto; max-height: 40vh; border-right: none; border-bottom: 1px solid var(--border); }
+  .hamburger { display: flex; }
+  .sidebar { position: fixed; top: 0; left: -100%; width: 85%; max-width: 320px; height: 100vh; z-index: 200; border-right: 1px solid var(--border); transition: left 0.25s ease; box-shadow: none; }
+  .sidebar.mobile-open { left: 0; box-shadow: 4px 0 24px rgba(0,0,0,0.15); }
+  .sidebar-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 199; }
+  .sidebar-overlay.visible { display: block; }
   .project-path { max-width: 200px; }
   .content { padding: 16px; }
   .modal { width: 96%; max-height: 90vh; border-radius: 12px; }
+  .topbar { gap: 8px; padding: 10px 14px; }
+  .search { font-size: 13px; padding: 8px 12px; }
+  .skill-card { padding: 14px; }
+  .skill-name { font-size: 15px; }
+  .skill-meta { flex-direction: column; gap: 4px; }
+  .diff-side { flex-direction: column; }
+  .diff-pane:first-child { border-right: none; border-bottom: 1px solid var(--border); }
 }
 </style>
 </head>
@@ -337,7 +352,9 @@ a:hover { text-decoration: underline; }
   <div class="sidebar-footer" id="generated"></div>
 </div>
 <div class="main">
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
   <div class="topbar">
+    <button class="hamburger" onclick="toggleMobileMenu()" title="Projects">&#9776;</button>
     <input class="search" id="search" type="text" placeholder="Search skills by name, tag, or description...">
   </div>
   <div class="content" id="content"></div>
@@ -397,8 +414,19 @@ function renderProjects() {
 
 function selectProject(id) {
   currentProject = id;
+  closeMobileMenu();
   renderProjects();
   renderSkills();
+}
+
+function toggleMobileMenu() {
+  document.querySelector('.sidebar').classList.toggle('mobile-open');
+  document.getElementById('sidebarOverlay').classList.toggle('visible');
+}
+
+function closeMobileMenu() {
+  document.querySelector('.sidebar').classList.remove('mobile-open');
+  document.getElementById('sidebarOverlay').classList.remove('visible');
 }
 
 function getFilteredSkills() {
