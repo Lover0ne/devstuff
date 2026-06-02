@@ -127,8 +127,8 @@ def cmd_registry_list(project_only: bool = False) -> dict:
         "instructions": (
             "Compare each skill against the work done. "
             "For matches: bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh\" skill-write --prepare '{\"action\":\"new_version\",\"id\":\"SKILL_ID\",\"change_summary\":\"WHAT_CHANGED\"}' "
-            "For uncovered work: bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh\" skill-write --prepare '{\"action\":\"create\",\"name\":\"SKILL_NAME\",\"description\":\"Use when TRIGGER\",\"tags\":[\"tag1\"]}' "
-            "Always include description field. Then follow the instructions in the response."
+            "For uncovered work: bash \"${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh\" skill-write --prepare '{\"action\":\"create\",\"name\":\"SKILL_NAME\"}' "
+            "Then follow the instructions in the response. Description and tags are set later via skill-meta."
         ),
     }
 

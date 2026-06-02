@@ -122,6 +122,7 @@ def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -
         "skill_id": skill_id,
         "description": description,
         "tags": tags or [],
+        "instructions": "Metadata saved. Skill is complete.",
     }
 
 
