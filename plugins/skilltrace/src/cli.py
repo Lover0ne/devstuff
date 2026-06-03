@@ -50,9 +50,6 @@ def cmd_setup() -> dict:
     first_run = not cfg_path.exists()
 
     base.mkdir(parents=True, exist_ok=True)
-    skills_dir().mkdir(parents=True, exist_ok=True)
-    project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
-    (project_skilltrace_dir() / "versions").mkdir(parents=True, exist_ok=True)
 
     cfg = load_config()
     status = "active" if cfg.get("enabled", True) else "dormant"
@@ -74,6 +71,9 @@ def cmd_setup() -> dict:
 
 def cmd_init() -> dict:
     project_id, marker = find_or_create_project_id()
+    skills_dir().mkdir(parents=True, exist_ok=True)
+    project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
+    (project_skilltrace_dir() / "versions").mkdir(parents=True, exist_ok=True)
     return {
         "status": "ok",
         "action": "project_initialized",
