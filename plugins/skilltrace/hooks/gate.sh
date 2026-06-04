@@ -46,9 +46,13 @@ if [ "$MARKER_FOUND" = false ]; then
     esac
     dbg "STAGE 1: no marker, not whitelisted — DENY (tool=$TOOL_NAME)"
     PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-    cat << DENY
+    dbg "PLUGIN_ROOT=$PLUGIN_ROOT"
+    DENY_JSON=$(cat << DENY
 {"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"ERROR: Skilltrace plugin is active but this project is NOT initialized. Tool use is BLOCKED until resolved. You MUST use AskUserQuestion NOW with: question='Skilltrace is installed. Enable skill tracking for this project?', header='Skilltrace', options=[{label:'Yes',description:'Enable — silently learns from your work and creates reusable skills'},{label:'No',description:'Skip for now — enable later with /skilltrace-init'}]. After the user answers: if Yes, run this exact Bash command: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" init — if No, run this exact Bash command: bash \\\"${PLUGIN_ROOT}/hooks/wrapper.sh\\\" skip — Do NOT use the Skill tool for init or skip. You MUST NOT skip or init without asking the user first. Autonomous skipping is forbidden."}}
 DENY
+)
+    dbg "DENY_JSON=$DENY_JSON"
+    echo "$DENY_JSON"
     dbg "STAGE 1: deny JSON emitted"
     exit 0
 fi
