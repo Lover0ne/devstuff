@@ -69,7 +69,9 @@ def cmd_setup() -> dict:
     return result
 
 
-def cmd_init() -> dict:
+def cmd_init(project_dir: str | None = None) -> dict:
+    if project_dir:
+        os.chdir(project_dir)
     project_id, marker = find_or_create_project_id()
     skills_dir().mkdir(parents=True, exist_ok=True)
     project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
@@ -85,7 +87,9 @@ def cmd_init() -> dict:
     }
 
 
-def cmd_skip() -> dict:
+def cmd_skip(project_dir: str | None = None) -> dict:
+    if project_dir:
+        os.chdir(project_dir)
     current = Path.cwd().resolve()
     marker = current / ".skilltrace"
     existing = read_marker(marker)
@@ -461,11 +465,13 @@ def main():
             print(json.dumps(result))
 
         elif command == "init":
-            result = cmd_init()
+            project_dir = sys.argv[2] if len(sys.argv) > 2 else None
+            result = cmd_init(project_dir)
             print(json.dumps(result))
 
         elif command == "skip":
-            result = cmd_skip()
+            project_dir = sys.argv[2] if len(sys.argv) > 2 else None
+            result = cmd_skip(project_dir)
             print(json.dumps(result))
 
         elif command == "skills":
