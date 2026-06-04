@@ -1,5 +1,5 @@
 ---
-name: status
+name: skilltrace-status
 description: Use when user asks if Skilltrace is active, enabled, or running. "is skilltrace on", "skilltrace status", "is tracking enabled". Shows enabled/disabled state, skill count, and project ID.
 disable-model-invocation: true
 ---

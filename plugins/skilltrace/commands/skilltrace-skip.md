@@ -1,5 +1,5 @@
 ---
-name: skip
+name: skilltrace-skip
 description: Use when user declines Skilltrace for this project. "skip skilltrace", "don't track this project", "no skilltrace here".
 ---
 

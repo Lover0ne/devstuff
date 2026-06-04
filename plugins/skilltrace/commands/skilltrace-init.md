@@ -1,5 +1,5 @@
 ---
-name: init
+name: skilltrace-init
 description: Use when user wants to enable Skilltrace in the current project. "enable skilltrace", "start tracking", "activate skilltrace here".
 ---
 

@@ -1,5 +1,5 @@
 ---
-name: reindex
+name: skilltrace-reindex
 description: Use when Skilltrace registry is out of sync with skill files on disk. "reindex skills", "rebuild skilltrace registry", "skills missing from list". Scans .claude/skills/ and re-registers all found SKILL.md files.
 ---
 
