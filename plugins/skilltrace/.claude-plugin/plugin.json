@@ -9,10 +9,9 @@
   "keywords": ["skills", "automation", "tracing", "productivity"],
   "skills": "./skills/",
   "commands": [
-    "./commands/skilltrace-init.md",
+    "./commands/skilltrace-start.md",
+    "./commands/skilltrace-stop.md",
     "./commands/skilltrace-status.md",
-    "./commands/skilltrace-pause.md",
-    "./commands/skilltrace-resume.md",
     "./commands/skilltrace-reindex.md",
     "./commands/skilltrace-skills.md",
     "./commands/skilltrace-history.md",

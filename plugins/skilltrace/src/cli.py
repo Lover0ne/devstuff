@@ -187,24 +187,44 @@ def cmd_finalize(hook_data: dict) -> dict:
     )}
 
 
-def cmd_pause() -> dict:
+def cmd_stop() -> dict:
     marker = _find_marker()
     if not marker:
-        return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "pause")
+        return error_receipt("No .skilltrace marker found. The gate will handle initialization.", "stop")
     data = read_marker(marker) or {}
+    if data.get("declined"):
+        return error_receipt("Skilltrace is already inactive (declined).", "stop")
     data["paused"] = True
     write_marker(marker, data)
-    return receipt("ok", "paused", str(marker))
+    return receipt("ok", "stopped", str(marker))
 
 
-def cmd_resume() -> dict:
+def cmd_start() -> dict:
     marker = _find_marker()
     if not marker:
-        return error_receipt("No .skilltrace marker found. Run /skilltrace-init first.", "resume")
+        return error_receipt("No .skilltrace marker found. The gate will handle initialization on next tool use.", "start")
     data = read_marker(marker) or {}
-    data.pop("paused", None)
-    write_marker(marker, data)
-    return receipt("ok", "resumed", str(marker))
+    if data.get("declined"):
+        data.pop("declined", None)
+        project_id, _ = find_or_create_project_id()
+        data["project_id"] = project_id
+        write_marker(marker, data)
+        skills_dir().mkdir(parents=True, exist_ok=True)
+        project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
+        (project_skilltrace_dir() / "versions").mkdir(parents=True, exist_ok=True)
+        return {
+            "status": "ok",
+            "action": "enabled",
+            "project_id": project_id,
+            "file": str(marker),
+            "ts": now_iso(),
+            "additionalContext": f"Skilltrace enabled (ID: {project_id}). Was previously declined, now active.",
+        }
+    if data.get("paused"):
+        data.pop("paused", None)
+        write_marker(marker, data)
+        return receipt("ok", "resumed", str(marker))
+    return receipt("ok", "already_active", str(marker))
 
 
 def _read_project_id() -> str | None:
@@ -402,7 +422,7 @@ def main():
 
     command = sys.argv[1]
 
-    always_allowed = ("setup", "init", "skip", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "dashboard", "scrape-transcript", "skill-write", "skill-meta")
+    always_allowed = ("setup", "init", "skip", "start", "stop", "registry", "pause", "resume", "status", "skills", "reindex", "history", "overview", "dashboard", "scrape-transcript", "skill-write", "skill-meta")
     if not is_enabled() and command not in always_allowed:
         if command in ("reminder", "finalize"):
             print(json.dumps({}))
@@ -453,11 +473,19 @@ def main():
             print(json.dumps(result))
 
         elif command == "pause":
-            result = cmd_pause()
+            result = cmd_stop()
             print(json.dumps(result))
 
         elif command == "resume":
-            result = cmd_resume()
+            result = cmd_start()
+            print(json.dumps(result))
+
+        elif command == "stop":
+            result = cmd_stop()
+            print(json.dumps(result))
+
+        elif command == "start":
+            result = cmd_start()
             print(json.dumps(result))
 
         elif command == "status":
