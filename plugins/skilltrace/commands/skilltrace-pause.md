@@ -1,6 +1,7 @@
 ---
 name: skilltrace-pause
 description: Use when user wants to temporarily stop Skilltrace. "pause skilltrace", "stop tracking", "disable skilltrace for now".
+disable-model-invocation: true
 ---
 
 Pause Skilltrace:

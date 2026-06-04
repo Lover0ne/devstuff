@@ -10,7 +10,6 @@
   "skills": "./skills/",
   "commands": [
     "./commands/skilltrace-init.md",
-    "./commands/skilltrace-skip.md",
     "./commands/skilltrace-status.md",
     "./commands/skilltrace-pause.md",
     "./commands/skilltrace-resume.md",
