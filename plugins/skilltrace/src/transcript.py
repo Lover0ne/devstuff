@@ -90,7 +90,7 @@ def _process_user(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> d
         text = content.strip()
         if not text:
             return None
-        if "skilltrace:skilltrace-" in text:
+        if "skilltrace" in text.lower() and ("<command-" in text or "[SKILLTRACE]" in text or "skilltrace:" in text):
             return None
         return {"role": "user", "text": text[:_MAX_TEXT_LEN]}
     if entry.get("isMeta"):
