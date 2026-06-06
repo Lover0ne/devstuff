@@ -214,6 +214,7 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
     results = []
     prompt_indices = []
     raw_index = 0
+    turn_ended = True
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -223,8 +224,11 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 entry = json.loads(line)
             except json.JSONDecodeError:
                 continue
-            if _is_real_user_prompt(entry):
+            if entry.get("type") == "system" and entry.get("subtype") == "turn_duration":
+                turn_ended = True
+            if _is_real_user_prompt(entry) and turn_ended:
                 prompt_indices.append(raw_index)
+                turn_ended = False
             etype = entry.get("type")
             if etype == "user":
                 processed = _process_user(entry, pending_tools)
