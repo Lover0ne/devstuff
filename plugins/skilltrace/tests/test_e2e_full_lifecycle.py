@@ -304,8 +304,8 @@ class TestSkillsInventory:
 
         cmd_setup()
         result = cmd_skills()
-        assert result["total"] == 0
-        assert result["skills"] == []
+        assert result["total_skills"] == 0
+        assert result["total_projects"] == 0
 
     def test_inventory_with_description(self, plugin_env, monkeypatch):
         from src.cli import cmd_setup, cmd_skill_write, cmd_skills
@@ -336,9 +336,11 @@ class TestSkillsInventory:
             json.dumps({"project_id": "proj-inv"})
         )
         result = cmd_skills()
-        assert result["total"] == 1
-        assert result["this_project"] == 1
-        assert result["skills"][0]["description"] == "Use when building MCP server for Stripe API"
+        assert result["total_skills"] == 1
+        assert result["total_projects"] == 1
+        pid = list(result["projects"].keys())[0]
+        assert result["projects"][pid]["is_current"] is True
+        assert result["projects"][pid]["skills"][0]["description"] == "Use when building MCP server for Stripe API"
 
 
 class TestEnableDisable:

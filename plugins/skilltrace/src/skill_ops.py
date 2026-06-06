@@ -5,7 +5,6 @@ Version scheme: v1, v2, v3... (simple integer, always increments).
 """
 
 import re
-import shutil
 import uuid
 from pathlib import Path
 

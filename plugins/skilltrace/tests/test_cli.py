@@ -87,9 +87,11 @@ def test_skills_returns_inventory(tmp_path, monkeypatch):
     registry.add_entry({"id": "sk-001", "name": "Test Skill", "tags": [], "path": "sk-001/SKILL.md", "project_id": "proj-abc"})
     monkeypatch.chdir(tmp_path)
     result = cli.cmd_skills()
-    assert result["total"] == 1
-    assert len(result["skills"]) == 1
-    assert result["skills"][0]["name"] == "Test Skill"
+    assert result["total_skills"] == 1
+    assert result["total_projects"] == 1
+    pid = list(result["projects"].keys())[0]
+    assert len(result["projects"][pid]["skills"]) == 1
+    assert result["projects"][pid]["skills"][0]["name"] == "Test Skill"
 
 
 def test_scrape_transcript_via_cli(cli_env):
