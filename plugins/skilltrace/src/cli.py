@@ -160,9 +160,11 @@ def cmd_reminder(hook_data: dict) -> dict:
             "permissionDecisionReason": (
                 "[SKILLTRACE] Spawn the skilltracer agent now "
                 "(Agent tool, run_in_background=true) with prompt including: "
-                "1) detailed summary of the task — what you did, what changed, files involved. "
+                "1) detailed summary of work completed in PREVIOUS prompts (NOT the current task you are about to do). "
+                "Describe what was built, changed, or fixed before this prompt. "
                 "If subagents were used, include what EACH subagent did and what files it modified. "
                 "EXCLUDE any skilltrace commands or skill management operations from the summary. "
+                "If no real work was done previously, say 'No significant work to evaluate'. "
                 f"2) transcript_path={tp} "
                 f"3) project_dir={cwd} "
                 "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.' "
@@ -180,8 +182,9 @@ def cmd_finalize(hook_data: dict) -> dict:
     return {"additionalContext": (
         "Session ending. Spawn the skilltracer agent in background. "
         "In the agent prompt include: "
-        "1) detailed summary of the task — what you did, what changed, files involved. "
+        "1) detailed summary of ALL work done in this session — what was built, changed, or fixed. "
         "If subagents were used, include what EACH subagent did and what files it modified. "
+        "EXCLUDE any skilltrace commands or skill management operations from the summary. "
         f"2) transcript_path={tp} "
         f"3) project_dir={cwd} "
         "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.'"
