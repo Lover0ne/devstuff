@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from src.shared import skilltrace_dir, skills_dir, atomic_write_json
+from src.shared import skilltrace_dir, atomic_write_json
 
 
 def _config_path() -> Path:
@@ -13,9 +13,6 @@ def _config_path() -> Path:
 def default_config() -> dict:
     return {
         "enabled": True,
-        "skills_dir": str(skills_dir()),
-        "versions_dir": str(skilltrace_dir() / "versions"),
-        "registry": str(skilltrace_dir() / "registry.json"),
     }
 
 
