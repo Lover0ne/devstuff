@@ -15,7 +15,7 @@ fi
 MARKER_PATH="$(pwd)/.skilltrace"
 if [ ! -f "$MARKER_PATH" ]; then
     case "$INPUT" in
-        *wrapper.sh\"*\"init\"*|*wrapper.sh\"*\"skip\"*)
+        *wrapper.sh*init*|*wrapper.sh*skip*)
             exit 0
             ;;
     esac
