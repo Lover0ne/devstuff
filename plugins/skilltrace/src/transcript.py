@@ -181,6 +181,20 @@ def _redact_entry(entry: dict) -> dict:
     return entry
 
 
+def _is_real_user_prompt(entry: dict) -> bool:
+    if entry.get("type") != "user":
+        return False
+    if entry.get("isMeta"):
+        return False
+    msg = entry.get("message", {})
+    content = msg.get("content")
+    if not isinstance(content, str):
+        return False
+    if content.strip().startswith("<command-"):
+        return False
+    return bool(content.strip())
+
+
 def scrape_transcript(transcript_path: str) -> list[dict]:
     path = Path(transcript_path).resolve()
     if ".." in path.parts:
@@ -191,6 +205,8 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
         return []
     pending_tools: dict[str, str] = {}
     results = []
+    prompt_indices = []
+    raw_index = 0
     with open(path, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
@@ -200,15 +216,23 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 entry = json.loads(line)
             except json.JSONDecodeError:
                 continue
+            if _is_real_user_prompt(entry):
+                prompt_indices.append(raw_index)
             etype = entry.get("type")
             if etype == "user":
                 processed = _process_user(entry, pending_tools)
                 if processed:
-                    results.append(processed)
+                    results.append((raw_index, processed))
             elif etype == "assistant":
                 processed = _process_assistant(entry, pending_tools)
                 if processed:
-                    results.append(processed)
+                    results.append((raw_index, processed))
+            raw_index += 1
+    if len(prompt_indices) >= 2:
+        lower = prompt_indices[-2]
+        upper = prompt_indices[-1]
+        results = [(i, r) for i, r in results if lower <= i < upper]
+    results = [r for _, r in results]
     if len(results) > _MAX_ENTRIES:
         results = results[-_MAX_ENTRIES:]
     return [_redact_entry(r) for r in results]
