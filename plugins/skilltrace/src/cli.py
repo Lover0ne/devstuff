@@ -251,7 +251,7 @@ def cmd_status() -> dict:
         "last_updated": last_updated,
     }
     if not project_id:
-        result["additionalContext"] = "Project not initialized. Use /skilltrace-init to enable."
+        result["additionalContext"] = "Project not initialized. Use /skilltrace-start to enable."
     return result
 
 
