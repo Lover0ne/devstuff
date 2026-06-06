@@ -11,11 +11,9 @@
   "commands": [
     "./commands/skilltrace-start.md",
     "./commands/skilltrace-stop.md",
-    "./commands/skilltrace-status.md",
-    "./commands/skilltrace-reindex.md",
     "./commands/skilltrace-skills.md",
     "./commands/skilltrace-history.md",
-    "./commands/skilltrace-overview.md",
+    "./commands/skilltrace-reindex.md",
     "./commands/skilltrace-dashboard.md"
   ],
   "agents": [

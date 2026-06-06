@@ -235,49 +235,41 @@ def _read_project_id() -> str | None:
     return data.get("project_id") if data else None
 
 
-def cmd_status() -> dict:
+def cmd_skills() -> dict:
     entries = list_entries()
     project_id = _read_project_id()
     marker = _find_marker()
     marker_data = read_marker(marker) if marker else None
-    paused = bool(marker_data.get("paused")) if marker_data else False
-    project_skills = [e for e in entries if e.get("project_id") == project_id] if project_id else []
-    last_updated = max((e.get("updated", "") for e in entries), default="never")
-    result = {
-        "enabled": not paused,
-        "total_skills": len(entries),
-        "project_skills": len(project_skills),
-        "project_id": project_id or "not initialized",
-        "last_updated": last_updated,
-    }
-    if not project_id:
-        result["additionalContext"] = "Project not initialized. Use /skilltrace-start to enable."
-    return result
 
+    if marker_data and marker_data.get("paused"):
+        current_status = "paused"
+    elif marker_data and marker_data.get("project_id"):
+        current_status = "active"
+    else:
+        current_status = "not initialized"
 
-def cmd_skills() -> dict:
-    entries = list_entries()
-    project_id = _read_project_id()
-
-    skills_list = []
+    projects = {}
     for e in entries:
-        is_current = e.get("project_id") == project_id if project_id else False
-        skills_list.append({
+        pid = e.get("project_id", "unknown")
+        if pid not in projects:
+            projects[pid] = {"skills": [], "is_current": pid == project_id}
+        projects[pid]["skills"].append({
             "id": e.get("id"),
             "name": e.get("name"),
             "description": e.get("description", ""),
             "version": e.get("version", 1),
-            "project_id": e.get("project_id"),
-            "is_current_project": is_current,
             "created": e.get("created", ""),
             "updated": e.get("updated", ""),
         })
 
     return {
-        "total": len(entries),
-        "this_project": sum(1 for s in skills_list if s.get("is_current_project")),
-        "other_projects": sum(1 for s in skills_list if not s.get("is_current_project")),
-        "skills": skills_list,
+        "current_project": {
+            "id": project_id or "not initialized",
+            "status": current_status,
+        },
+        "total_skills": len(entries),
+        "total_projects": len(projects),
+        "projects": projects,
     }
 
 
@@ -352,29 +344,6 @@ def cmd_history(skill_id: str) -> dict:
     }
 
 
-def cmd_overview() -> dict:
-    entries = list_entries()
-    projects = {}
-    for e in entries:
-        pid = e.get("project_id", "unknown")
-        if pid not in projects:
-            projects[pid] = []
-        projects[pid].append({
-            "id": e.get("id"),
-            "name": e.get("name"),
-            "description": e.get("description", ""),
-            "version": e.get("version", 1),
-            "created": e.get("created", ""),
-            "updated": e.get("updated", ""),
-        })
-
-    current_project_id = _read_project_id()
-    return {
-        "current_project_id": current_project_id or "not initialized",
-        "total_skills": len(entries),
-        "total_projects": len(projects),
-        "projects": projects,
-    }
 
 
 def cmd_dashboard() -> dict:
@@ -489,7 +458,7 @@ def main():
             print(json.dumps(result))
 
         elif command == "status":
-            result = cmd_status()
+            result = cmd_skills()
             print(json.dumps(result))
 
         elif command == "init":
@@ -518,7 +487,7 @@ def main():
             print(json.dumps(result))
 
         elif command == "overview":
-            result = cmd_overview()
+            result = cmd_skills()
             print(json.dumps(result))
 
         elif command == "dashboard":
