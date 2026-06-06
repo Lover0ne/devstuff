@@ -150,9 +150,19 @@ After collecting ALL values, perform a **global find-and-replace** for each plac
 
 Write the file to: `~/.claude/copycat/templates/{original-name}-copycat/SKILL.md`
 
-Create the directory if it doesn't exist. This location is persistent (survives plugin updates) and shared across all projects.
+Create the directory if it doesn't exist.
 
-## Step 6: Confirm to user
+## Step 6: Register the template
+
+After writing the file, register it in the Copycat registry:
+
+```bash
+bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" registry --add '{"id":"{original-name}-copycat","name":"{Skill Display Name}","source_skill":"{original-name}","source_project":"{project_id_if_available}","mode":"{sanitize|questionnaire}","placeholders":["placeholder1","placeholder2"],"placeholder_count":N}'
+```
+
+Replace values with actual data from the cloning process.
+
+## Step 7: Confirm to user
 
 Report:
 - Source skill name and location
@@ -161,8 +171,8 @@ Report:
 - Output path (`~/.claude/copycat/templates/{name}-copycat/SKILL.md`)
 
 Then open the output folder for the user:
-- Windows: `powershell -Command "Start-Process '~/.claude/copycat/templates/{name}-copycat'"`
+- Windows: `powershell -Command "Start-Process (Resolve-Path '~/.claude/copycat/templates/{name}-copycat')"`
 - macOS: `open ~/.claude/copycat/templates/{name}-copycat`
 - Linux: `xdg-open ~/.claude/copycat/templates/{name}-copycat`
 
-Tell the user: "To use this template in another project, copy the SKILL.md into that project's `.claude/skills/{name}/` directory, or read it and follow the steps."
+Tell the user: "Template registered. View all templates with `/copycat-dashboard`. To use in another project, copy the SKILL.md into `.claude/skills/{name}/`."

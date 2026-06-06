@@ -2,7 +2,7 @@
   "name": "copycat",
   "displayName": "Copycat",
   "description": "Anonymize skills into reusable templates with smart placeholders. Clone any skill, replace project-specific values with {{placeholders}}, then choose: sanitize-only (raw placeholders) or questionnaire mode (auto-collects inputs via AskUserQuestion).",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "Lorenzo Campagna"
   },
@@ -10,6 +10,7 @@
   "keywords": ["skills", "templates", "anonymize", "reuse", "placeholders"],
   "skills": "./skills/",
   "commands": [
-    "./commands/copycat-clone.md"
+    "./commands/copycat-clone.md",
+    "./commands/copycat-dashboard.md"
   ]
 }
