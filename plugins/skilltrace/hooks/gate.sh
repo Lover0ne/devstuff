@@ -46,6 +46,9 @@ case "$INPUT" in
     *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"EnterPlanMode\"*|*\"ExitPlanMode\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*|*\"ScheduleWakeup\"*)
         exit 0
         ;;
+    *wrapper.sh*)
+        exit 0
+        ;;
 esac
 
 # Fire reminder (atomic consume) and disarm

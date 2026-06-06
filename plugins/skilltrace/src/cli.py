@@ -162,6 +162,7 @@ def cmd_reminder(hook_data: dict) -> dict:
                 "(Agent tool, run_in_background=true) with prompt including: "
                 "1) detailed summary of the task — what you did, what changed, files involved. "
                 "If subagents were used, include what EACH subagent did and what files it modified. "
+                "EXCLUDE any skilltrace commands or skill management operations from the summary. "
                 f"2) transcript_path={tp} "
                 f"3) project_dir={cwd} "
                 "4) 'Follow the skilltracer agent procedure from the skilltrace plugin.' "

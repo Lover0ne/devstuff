@@ -146,6 +146,8 @@ def _process_assistant(entry: dict, pending_tools: dict) -> dict | None:
             if tool_id:
                 pending_tools[tool_id] = name
             inp = block.get("input", {})
+            if isinstance(inp, dict) and "wrapper.sh" in str(inp.get("command", "")):
+                continue
             params = _extract_tool_params(name, inp if isinstance(inp, dict) else {})
             tool_entry = {"tool": name}
             if params:
