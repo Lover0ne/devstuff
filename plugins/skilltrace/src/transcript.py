@@ -174,6 +174,50 @@ def _process_assistant(entry: dict, pending_tools: dict, filtered_tool_ids: set)
     return result
 
 
+_SUBAGENT_ACTION_TOOLS = {"Write", "Edit", "Bash", "PowerShell"}
+
+
+def _scrape_subagent(subagent_path: Path) -> list[dict]:
+    if not subagent_path.exists():
+        return []
+    actions = []
+    try:
+        with open(subagent_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if entry.get("type") != "assistant":
+                    continue
+                msg = entry.get("message", {})
+                content = msg.get("content")
+                if not isinstance(content, list):
+                    continue
+                for block in content:
+                    if not isinstance(block, dict) or block.get("type") != "tool_use":
+                        continue
+                    name = block.get("name", "")
+                    if name not in _SUBAGENT_ACTION_TOOLS:
+                        continue
+                    inp = block.get("input", {})
+                    if not isinstance(inp, dict):
+                        continue
+                    if "wrapper.sh" in str(inp.get("command", "")):
+                        continue
+                    params = _extract_tool_params(name, inp)
+                    tool_entry = {"tool": name}
+                    if params:
+                        tool_entry["params"] = params
+                    actions.append(tool_entry)
+    except OSError:
+        return []
+    return actions
+
+
 def _redact_entry(entry: dict) -> dict:
     for key in ("text",):
         if key in entry and isinstance(entry[key], str):
@@ -224,6 +268,7 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
     filtered_tool_ids: set[str] = set()
     results = []
     prompt_indices = []
+    subagent_refs: list[tuple[int, str, str]] = []
     raw_index = 0
     turn_ended = True
     with open(path, encoding="utf-8") as f:
@@ -242,6 +287,12 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 turn_ended = False
             etype = entry.get("type")
             if etype == "user":
+                tr = entry.get("toolUseResult")
+                if isinstance(tr, dict) and tr.get("isAsync") and tr.get("agentId"):
+                    agent_id = tr["agentId"]
+                    desc = tr.get("description", "") + " " + tr.get("prompt", "")
+                    if "skilltrace" not in desc.lower():
+                        subagent_refs.append((raw_index, agent_id, tr.get("description", "")))
                 processed = _process_user(entry, pending_tools, filtered_tool_ids)
                 if processed:
                     results.append((raw_index, processed))
@@ -254,7 +305,20 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
         lower = prompt_indices[-2]
         upper = prompt_indices[-1]
         results = [(i, r) for i, r in results if lower <= i < upper]
+        subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if lower <= i < upper]
     results = [r for _, r in results]
     if len(results) > _MAX_ENTRIES:
         results = results[-_MAX_ENTRIES:]
-    return [_redact_entry(r) for r in results]
+    results = [_redact_entry(r) for r in results]
+    if subagent_refs:
+        subagent_dir = path.parent / "subagents"
+        for _, agent_id, desc in subagent_refs:
+            sa_path = subagent_dir / f"agent-{agent_id}.jsonl"
+            actions = _scrape_subagent(sa_path)
+            if actions:
+                results.append({
+                    "role": "subagent",
+                    "description": desc,
+                    "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in actions],
+                })
+    return results
