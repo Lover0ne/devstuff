@@ -306,19 +306,23 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
         upper = prompt_indices[-1]
         results = [(i, r) for i, r in results if lower <= i < upper]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if lower <= i < upper]
-    results = [r for _, r in results]
-    if len(results) > _MAX_ENTRIES:
-        results = results[-_MAX_ENTRIES:]
-    results = [_redact_entry(r) for r in results]
+    subagent_entries: dict[int, dict] = {}
     if subagent_refs:
         subagent_dir = path.parent / "subagents"
-        for _, agent_id, desc in subagent_refs:
+        for idx, agent_id, desc in subagent_refs:
             sa_path = subagent_dir / f"agent-{agent_id}.jsonl"
             actions = _scrape_subagent(sa_path)
             if actions:
-                results.append({
+                subagent_entries[idx] = {
                     "role": "subagent",
                     "description": desc,
                     "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in actions],
-                })
-    return results
+                }
+    final = []
+    for idx, r in results:
+        final.append(_redact_entry(r))
+        if idx in subagent_entries:
+            final.append(subagent_entries[idx])
+    if len(final) > _MAX_ENTRIES:
+        final = final[-_MAX_ENTRIES:]
+    return final
