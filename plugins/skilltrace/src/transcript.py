@@ -201,7 +201,7 @@ def _scrape_subagent(subagent_path: Path) -> list[dict]:
                     if not isinstance(block, dict) or block.get("type") != "tool_use":
                         continue
                     name = block.get("name", "")
-                    if name not in _SUBAGENT_ACTION_TOOLS:
+                    if name not in _SUBAGENT_ACTION_TOOLS and not name.startswith("mcp__"):
                         continue
                     inp = block.get("input", {})
                     if not isinstance(inp, dict):
