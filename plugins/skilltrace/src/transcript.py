@@ -81,7 +81,7 @@ def _extract_tool_result_text(block: dict) -> str:
     return ""
 
 
-def _process_user(entry: dict, pending_tools: dict) -> dict | None:
+def _process_user(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> dict | None:
     msg = entry.get("message", {})
     content = msg.get("content")
     if not content:
@@ -90,7 +90,13 @@ def _process_user(entry: dict, pending_tools: dict) -> dict | None:
         text = content.strip()
         if not text:
             return None
+        if "skilltrace:skilltrace-" in text:
+            return None
         return {"role": "user", "text": text[:_MAX_TEXT_LEN]}
+    if entry.get("isMeta"):
+        text_parts = [b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text"] if isinstance(content, list) else []
+        if any("wrapper.sh" in t for t in text_parts):
+            return None
     if not isinstance(content, list):
         return None
     texts = []
@@ -105,6 +111,8 @@ def _process_user(entry: dict, pending_tools: dict) -> dict | None:
                 texts.append(t)
         elif btype == "tool_result":
             tid = block.get("tool_use_id", "")
+            if tid in filtered_tool_ids:
+                continue
             tool_name = pending_tools.get(tid)
             if not tool_name:
                 continue
@@ -124,7 +132,7 @@ def _process_user(entry: dict, pending_tools: dict) -> dict | None:
     return {"role": "user", "text": " ".join(texts)[:_MAX_TEXT_LEN]}
 
 
-def _process_assistant(entry: dict, pending_tools: dict) -> dict | None:
+def _process_assistant(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> dict | None:
     msg = entry.get("message", {})
     content = msg.get("content")
     if not content or not isinstance(content, list):
@@ -147,6 +155,8 @@ def _process_assistant(entry: dict, pending_tools: dict) -> dict | None:
                 pending_tools[tool_id] = name
             inp = block.get("input", {})
             if isinstance(inp, dict) and "wrapper.sh" in str(inp.get("command", "")):
+                if tool_id:
+                    filtered_tool_ids.add(tool_id)
                 continue
             params = _extract_tool_params(name, inp if isinstance(inp, dict) else {})
             tool_entry = {"tool": name}
@@ -211,6 +221,7 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
     if not path.exists():
         return []
     pending_tools: dict[str, str] = {}
+    filtered_tool_ids: set[str] = set()
     results = []
     prompt_indices = []
     raw_index = 0
@@ -231,11 +242,11 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 turn_ended = False
             etype = entry.get("type")
             if etype == "user":
-                processed = _process_user(entry, pending_tools)
+                processed = _process_user(entry, pending_tools, filtered_tool_ids)
                 if processed:
                     results.append((raw_index, processed))
             elif etype == "assistant":
-                processed = _process_assistant(entry, pending_tools)
+                processed = _process_assistant(entry, pending_tools, filtered_tool_ids)
                 if processed:
                     results.append((raw_index, processed))
             raw_index += 1
