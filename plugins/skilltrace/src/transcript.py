@@ -186,13 +186,20 @@ def _is_real_user_prompt(entry: dict) -> bool:
         return False
     if entry.get("isMeta"):
         return False
+    if entry.get("interruptedMessageId"):
+        return False
     msg = entry.get("message", {})
     content = msg.get("content")
     if not isinstance(content, str):
         return False
-    if content.strip().startswith("<command-"):
+    text = content.strip()
+    if not text:
         return False
-    return bool(content.strip())
+    if text.startswith("<command-") or text.startswith("<local-command"):
+        return False
+    if text.startswith("[Request interrupted"):
+        return False
+    return True
 
 
 def scrape_transcript(transcript_path: str) -> list[dict]:
