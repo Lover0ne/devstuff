@@ -1,5 +1,5 @@
 ---
-name: clone
+name: copycat-clone
 description: Anonymize a skill into a reusable template with smart {{placeholders}} — choose sanitize-only or questionnaire mode
 ---
 
@@ -24,8 +24,9 @@ Store the user's choice. It determines the output format in Step 4.
 
 Search for the skill by name in these locations (stop at first match):
 1. `.claude/skills/` in the current project — each subfolder contains a `SKILL.md`
-2. `~/.claude/skills/` — global user skills (legacy)
-3. Plugin skill directories — glob `~/.claude/plugins/cache/*/skills/*/SKILL.md`
+2. `~/.claude/copycat/templates/` — previously cloned templates
+3. `~/.claude/skills/` — global user skills (legacy)
+4. Plugin skill directories — glob `~/.claude/plugins/cache/*/skills/*/SKILL.md`
 
 Read the skill's `SKILL.md` content. If not found, tell the user and stop.
 
@@ -147,9 +148,9 @@ After collecting ALL values, perform a **global find-and-replace** for each plac
 
 ## Step 5: Write the anonymized skill
 
-Write the file to: `${CLAUDE_PLUGIN_ROOT}/skills/{original-name}-copycat/SKILL.md`
+Write the file to: `~/.claude/copycat/templates/{original-name}-copycat/SKILL.md`
 
-Create the directory if it doesn't exist.
+Create the directory if it doesn't exist. This location is persistent (survives plugin updates) and shared across all projects.
 
 ## Step 6: Confirm to user
 
@@ -157,5 +158,11 @@ Report:
 - Source skill name and location
 - Number of unique placeholders created
 - List of placeholders with descriptions
-- Output path
-- How to invoke: `/copycat-{original-name}-copycat`
+- Output path (`~/.claude/copycat/templates/{name}-copycat/SKILL.md`)
+
+Then open the output folder for the user:
+- Windows: `powershell -Command "Start-Process '~/.claude/copycat/templates/{name}-copycat'"`
+- macOS: `open ~/.claude/copycat/templates/{name}-copycat`
+- Linux: `xdg-open ~/.claude/copycat/templates/{name}-copycat`
+
+Tell the user: "To use this template in another project, copy the SKILL.md into that project's `.claude/skills/{name}/` directory, or read it and follow the steps."
