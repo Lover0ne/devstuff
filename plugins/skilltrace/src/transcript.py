@@ -116,6 +116,9 @@ def _process_user(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> d
             tool_name = pending_tools.get(tid)
             if not tool_name:
                 continue
+            is_error = block.get("is_error", False)
+            if tool_name in ("Write", "Edit", "Read") and not is_error:
+                continue
             result_text = _extract_tool_result_text(block)
             if result_text:
                 tool_results.append({
