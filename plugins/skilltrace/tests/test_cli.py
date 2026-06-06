@@ -34,7 +34,7 @@ def test_setup_first_run_welcome(tmp_path, monkeypatch):
     result = cli.cmd_setup()
     assert result["status"] == "active"
     assert "Skilltrace installed" in result["additionalContext"]
-    assert "skilltrace-pause" in result["additionalContext"]
+    assert "skilltrace-stop" in result["additionalContext"]
 
 
 def test_setup_with_marker_active(tmp_path, monkeypatch):

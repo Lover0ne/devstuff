@@ -345,32 +345,32 @@ class TestEnableDisable:
     """Plugin pause/resume and disabled-state behavior."""
 
     def test_pause_disables(self, plugin_env):
-        from src.cli import cmd_setup, cmd_pause, cmd_status
+        from src.cli import cmd_setup, cmd_stop, cmd_skills
 
         cmd_setup()
         (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
-        cmd_pause()
-        status = cmd_status()
+        cmd_stop()
+        status = cmd_skills()
         assert status["enabled"] is False
 
     def test_resume_enables(self, plugin_env):
-        from src.cli import cmd_setup, cmd_pause, cmd_resume, cmd_status
+        from src.cli import cmd_setup, cmd_stop, cmd_start, cmd_skills
 
         cmd_setup()
         (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
-        cmd_pause()
-        cmd_resume()
-        status = cmd_status()
+        cmd_stop()
+        cmd_start()
+        status = cmd_skills()
         assert status["enabled"] is True
 
     def test_disabled_allows_always_allowed(self, plugin_env):
         """setup/init/registry/pause/resume/status/skills work when paused."""
-        from src.cli import cmd_setup, cmd_pause, cmd_status, cmd_skills
+        from src.cli import cmd_setup, cmd_stop, cmd_skills
 
         cmd_setup()
         (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
-        cmd_pause()
-        status = cmd_status()
+        cmd_stop()
+        status = cmd_skills()
         assert status["enabled"] is False
         result = cmd_skills()
         assert "total" in result
@@ -481,7 +481,7 @@ class TestFullLifecycleE2E:
     def test_complete_flow(self, plugin_env, monkeypatch):
         from src.cli import (
             cmd_setup, cmd_init, cmd_skill_write, cmd_skills,
-            cmd_pause, cmd_resume, cmd_status, cmd_registry_list,
+            cmd_stop, cmd_start, cmd_registry_list,
         )
         from src import skill_ops, cli
 
@@ -554,8 +554,8 @@ class TestFullLifecycleE2E:
         assert match[0]["change_summary"] == "Added social login providers"
 
         # 9. Pause plugin
-        cmd_pause()
-        st = cmd_status()
+        cmd_stop()
+        st = cmd_skills()
         assert st["enabled"] is False
 
         # 10. Skills still accessible when paused
@@ -563,8 +563,8 @@ class TestFullLifecycleE2E:
         assert inv2["total"] == 1
 
         # 11. Resume
-        cmd_resume()
-        st = cmd_status()
+        cmd_start()
+        st = cmd_skills()
         assert st["enabled"] is True
 
         # 12. Status shows correct counts

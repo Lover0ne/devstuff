@@ -61,7 +61,7 @@ def cmd_setup() -> dict:
             "Skilltrace installed. It automatically traces your work and converts "
             "completed tasks into replayable skills stored in .claude/skills/. "
             "Runs silently in background — zero overhead. "
-            "Disable anytime with /skilltrace-pause."
+            "Disable anytime with /skilltrace-stop."
         )
     elif status == "active":
         result["additionalContext"] = "Skilltrace active."
