@@ -96,8 +96,10 @@ class TestHookActivation:
 
     def test_finalize_hook(self, plugin_env):
         """SessionEnd hook returns skilltracer instructions."""
-        from src.cli import cmd_finalize
+        from src.cli import cmd_setup, cmd_init, cmd_finalize
 
+        cmd_setup()
+        cmd_init()
         result = cmd_finalize({"transcript_path": "/tmp/session.jsonl"})
         assert "Session ending" in result["additionalContext"]
         assert "skilltracer" in result["additionalContext"]

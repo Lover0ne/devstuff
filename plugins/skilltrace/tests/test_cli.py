@@ -131,9 +131,21 @@ def test_reminder_returns_empty_without_marker(cli_env):
     assert result == {}
 
 
-def test_finalize_returns_additional_context(cli_env):
+def test_finalize_returns_additional_context(cli_env, tmp_path, monkeypatch):
+    import json
     from src.cli import cmd_finalize
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".skilltrace").write_text(json.dumps({"project_id": "proj-fin"}))
     result = cmd_finalize({"transcript_path": "/tmp/t.jsonl"})
     assert "additionalContext" in result
     assert "skilltracer" in result["additionalContext"]
     assert "Session ending" in result["additionalContext"]
+
+
+def test_finalize_skips_if_declined(cli_env, tmp_path, monkeypatch):
+    import json
+    from src.cli import cmd_finalize
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / ".skilltrace").write_text(json.dumps({"declined": True}))
+    result = cmd_finalize({"transcript_path": "/tmp/t.jsonl"})
+    assert result == {}

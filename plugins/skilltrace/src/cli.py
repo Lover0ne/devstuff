@@ -177,6 +177,12 @@ def cmd_reminder(hook_data: dict) -> dict:
 
 
 def cmd_finalize(hook_data: dict) -> dict:
+    if not _check_marker_exists():
+        return {}
+    marker = _find_marker()
+    marker_data = read_marker(marker) if marker else None
+    if not marker_data or marker_data.get("paused") or marker_data.get("declined") or not marker_data.get("project_id"):
+        return {}
     tp = hook_data.get("transcript_path", "")
     cwd = os.getcwd()
     return {"additionalContext": (
