@@ -209,9 +209,11 @@ def cmd_start() -> dict:
         return error_receipt("No .skilltrace marker found. The gate will handle initialization on next tool use.", "start")
     data = read_marker(marker) or {}
     if data.get("declined"):
+        import uuid
         data.pop("declined", None)
-        project_id, _ = find_or_create_project_id()
+        project_id = f"proj-{uuid.uuid4().hex[:16]}"
         data["project_id"] = project_id
+        data["created"] = now_iso()
         write_marker(marker, data)
         skills_dir().mkdir(parents=True, exist_ok=True)
         project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
