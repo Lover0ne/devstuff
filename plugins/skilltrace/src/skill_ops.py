@@ -132,7 +132,10 @@ def _archive_current(skill_id: str, version: int) -> Path | None:
     dst = _version_path(skill_id, version)
     dst.parent.mkdir(parents=True, exist_ok=True)
     try:
-        src.rename(dst)
+        import os
+        import shutil
+        shutil.copy2(str(src), str(dst))
+        os.remove(str(src))
     except OSError as e:
         return {"error": str(e)}
     return dst
