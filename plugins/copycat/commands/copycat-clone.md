@@ -154,11 +154,15 @@ Create the directory if it doesn't exist.
 
 ## Step 6: Register the template
 
-After writing the file, register it in the Copycat registry:
+After writing the file, register it in the Copycat registry.
+
+Build a JSON string with the template metadata, then pipe it to the wrapper via **Bash** (not PowerShell):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" registry --add '{"id":"{original-name}-copycat","name":"{Skill Display Name}","source_skill":"{original-name}","source_project":"{project_id_if_available}","mode":"{sanitize|questionnaire}","placeholders":["placeholder1","placeholder2"],"placeholder_count":N}'
+echo '{"id":"{original-name}-copycat","name":"{Skill Display Name}","source_skill":"{original-name}","source_project":"{project_id_if_available}","mode":"{sanitize|questionnaire}","placeholders":["placeholder1","placeholder2"],"placeholder_count":N}' | bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" registry --add
 ```
+
+**IMPORTANT:** Always use the Bash tool for this command, not PowerShell. The `${CLAUDE_PLUGIN_ROOT}` variable is set by Claude Code and resolved by Bash.
 
 Replace values with actual data from the cloning process.
 
