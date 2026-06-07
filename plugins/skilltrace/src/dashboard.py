@@ -831,7 +831,7 @@ function enableDragScroll(el) {
     el.scrollTop = scrollTop - (e.pageY - el.offsetTop - startY);
   });
 }
-document.querySelectorAll('.project-list, .content').forEach(enableDragScroll);
+document.querySelectorAll('.project-list').forEach(enableDragScroll);
 
 init();
 document.getElementById('loading').style.display='none';

@@ -103,8 +103,10 @@ a:hover { text-decoration: underline; }
 .template-list.dragging { user-select: none; }
 .template-item { padding: 12px 14px; border-radius: 10px; cursor: pointer; margin-bottom: 4px; transition: all 0.15s; }
 .template-item:hover { background: var(--bg3); }
-.template-item.active { background: var(--accent); color: #fff; }
-.template-item-name { font-weight: 600; font-size: 14px; margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.template-item.active { background: rgba(76, 175, 80, 0.2); color: #fff; border: 1px solid rgba(76, 175, 80, 0.4); }
+.template-item-name { font-weight: 600; font-size: 14px; margin-bottom: 2px; line-height: 1.3; color: #e0e0e0; }
+.template-item-source { font-size: 11px; color: var(--fg3); margin-bottom: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-style: italic; }
+.template-item.active .template-item-source { color: rgba(255,255,255,0.5); }
 .template-item-meta { display: flex; align-items: center; gap: 8px; font-size: 11px; color: var(--fg3); }
 .template-item.active .template-item-meta { color: rgba(255,255,255,0.7); }
 .mode-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.5px; }
@@ -164,6 +166,10 @@ a:hover { text-decoration: underline; }
 .md-content code { background: var(--code-bg); padding: 2px 7px; border-radius: 5px; font-size: 13px; font-family: 'Cascadia Code', 'SF Mono', Consolas, monospace; color: var(--accent-dark); }
 .md-content pre { background: var(--code-bg); padding: 16px; border-radius: 10px; overflow-x: auto; margin: 12px 0; border: 1px solid var(--border); }
 .md-content pre code { background: none; padding: 0; color: var(--fg); }
+.md-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 14px; }
+.md-content th { background: var(--bg3); color: var(--accent); font-weight: 600; text-align: left; padding: 10px 14px; border-bottom: 2px solid var(--border); }
+.md-content td { padding: 8px 14px; border-bottom: 1px solid var(--border); color: var(--fg2); }
+.md-content tr:hover td { background: rgba(255,255,255,0.03); }
 .md-content a { color: var(--accent); }
 .md-content strong { font-weight: 600; color: var(--fg); }
 .md-content em { font-style: italic; }
@@ -274,10 +280,10 @@ function renderList() {
     var active = selectedId === t.id ? 'active' : '';
     html += '<div class="template-item ' + active + '" onclick="selectTemplate(\'' + esc(t.id) + '\')">' +
       '<div class="template-item-name">' + esc(t.name) + '</div>' +
+      (t.source_skill ? '<div class="template-item-source">' + esc(t.source_skill) + '</div>' : '') +
       '<div class="template-item-meta">' +
         '<span class="mode-badge ' + modeClass(t.mode) + '">' + esc(t.mode || '?') + '</span>' +
         '<span>' + t.placeholder_count + ' placeholder' + (t.placeholder_count !== 1 ? 's' : '') + '</span>' +
-        (t.source_skill ? '<span>' + esc(t.source_skill) + '</span>' : '') +
       '</div>' +
     '</div>';
   }
@@ -343,7 +349,6 @@ function renderContent() {
         '<div class="info-row"><span class="info-label">Source Project</span><span class="info-value">' + esc(t.source_project || '—') + '</span></div>' +
         '<div class="info-row"><span class="info-label">Mode</span><span class="info-value"><span class="mode-badge ' + modeClass(t.mode) + '">' + esc(t.mode || '?') + '</span></span></div>' +
         '<div class="info-row"><span class="info-label">Created</span><span class="info-value">' + fmtDate(t.created) + '</span></div>' +
-        '<div class="info-row"><span class="info-label">Updated</span><span class="info-value">' + fmtDate(t.updated) + '</span></div>' +
       '</div>' +
       '<div class="info-card">' +
         '<h3>Placeholders (' + t.placeholder_count + ')</h3>' +
@@ -382,22 +387,41 @@ function closeMobileMenu() {
 // --- Markdown renderer (no deps) ---
 function renderMd(text) {
   if (!text) return '';
+  // Strip YAML frontmatter
+  text = text.replace(/^---\n[\s\S]*?\n---\n*/, '');
   var lines = text.split('\n');
-  var html = '', inCode = false, codeBuf = [], inList = false, listType = '';
+  var html = '', inCode = false, codeBuf = [], inList = false, listType = '', inTable = false;
 
   function flushList() {
     if (inList) { html += listType === 'ol' ? '</ol>' : '</ul>'; inList = false; }
+  }
+  function flushTable() {
+    if (inTable) { html += '</tbody></table>'; inTable = false; }
   }
 
   for (var i = 0; i < lines.length; i++) {
     var line = lines[i];
     if (line.indexOf('```') === 0) {
-      if (inCode) { html += '<pre><code>' + esc(codeBuf.join('\n')) + '</code></pre>'; codeBuf = []; inCode = false; }
-      else { flushList(); inCode = true; }
+      if (inCode) { html += '<pre><code>' + escPh(codeBuf.join('\n')) + '</code></pre>'; codeBuf = []; inCode = false; }
+      else { flushList(); flushTable(); inCode = true; }
       continue;
     }
     if (inCode) { codeBuf.push(line); continue; }
-    if (line === '---' && i < 3) continue;
+    // Table row
+    if (/^\|(.+)\|$/.test(line.trim())) {
+      var cells = line.trim().replace(/^\||\|$/g, '').split('|').map(function(c) { return c.trim(); });
+      // Separator row (|---|---|)
+      if (cells.every(function(c) { return /^[-:]+$/.test(c); })) continue;
+      if (!inTable) {
+        flushList();
+        html += '<table><thead><tr>' + cells.map(function(c) { return '<th>' + inlineMd(c) + '</th>'; }).join('') + '</tr></thead><tbody>';
+        inTable = true;
+      } else {
+        html += '<tr>' + cells.map(function(c) { return '<td>' + inlineMd(c) + '</td>'; }).join('') + '</tr>';
+      }
+      continue;
+    }
+    flushTable();
     if (/^#{1,6}\s/.test(line)) {
       flushList();
       var lvl = line.match(/^(#+)/)[1].length;
@@ -416,11 +440,10 @@ function renderMd(text) {
     }
     flushList();
     if (line.trim() === '') continue;
-    if (i < 5 && /^[a-z_]+:/.test(line)) continue;
     html += '<p>' + inlineMd(line) + '</p>';
   }
-  flushList();
-  if (inCode) html += '<pre><code>' + esc(codeBuf.join('\n')) + '</code></pre>';
+  flushList(); flushTable();
+  if (inCode) html += '<pre><code>' + escPh(codeBuf.join('\n')) + '</code></pre>';
   return html;
 }
 
@@ -441,6 +464,9 @@ function inlineMd(text) {
 function esc(s) {
   if (typeof s !== 'string') return '';
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function escPh(s) {
+  return esc(s).replace(/\{\{([^}]+)\}\}/g, '<span class="ph-highlight">{{$1}}</span>');
 }
 
 function fmtDate(s) {
@@ -467,7 +493,7 @@ function enableDragScroll(el) {
     el.scrollTop = scrollTop - (e.pageY - el.offsetTop - startY);
   });
 }
-document.querySelectorAll('.template-list, .content').forEach(enableDragScroll);
+document.querySelectorAll('.template-list').forEach(enableDragScroll);
 
 init();
 document.getElementById('loading').style.display = 'none';
