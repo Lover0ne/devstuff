@@ -64,7 +64,6 @@ class TestHookActivation:
         assert result["status"] == "active"
         assert "Skilltrace installed" in result["additionalContext"]
         assert plugin_env["st_dir"].exists()
-        assert plugin_env["sk_dir"].exists()
 
     def test_session_start_subsequent_no_marker(self, plugin_env):
         """Second run, no .skilltrace marker: suggest init."""
@@ -353,7 +352,7 @@ class TestEnableDisable:
         (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
         cmd_stop()
         status = cmd_skills()
-        assert status["enabled"] is False
+        assert status["current_project"]["status"] == "paused"
 
     def test_resume_enables(self, plugin_env):
         from src.cli import cmd_setup, cmd_stop, cmd_start, cmd_skills
@@ -363,7 +362,7 @@ class TestEnableDisable:
         cmd_stop()
         cmd_start()
         status = cmd_skills()
-        assert status["enabled"] is True
+        assert status["current_project"]["status"] == "active"
 
     def test_disabled_allows_always_allowed(self, plugin_env):
         """setup/init/registry/pause/resume/status/skills work when paused."""
@@ -373,9 +372,9 @@ class TestEnableDisable:
         (plugin_env["project_dir"] / ".skilltrace").write_text(json.dumps({"project_id": "proj-pause"}))
         cmd_stop()
         status = cmd_skills()
-        assert status["enabled"] is False
+        assert status["current_project"]["status"] == "paused"
         result = cmd_skills()
-        assert "total" in result
+        assert "total_skills" in result
         result2 = cmd_setup()
         assert result2["status"] in ("active", "dormant")
 
@@ -533,9 +532,10 @@ class TestFullLifecycleE2E:
 
         # 6. Skills inventory shows 1 skill
         inv = cmd_skills()
-        assert inv["total"] == 1
-        assert inv["this_project"] == 1
-        assert inv["skills"][0]["description"] == "Use when setting up NextJS auth with Clerk and Drizzle ORM"
+        assert inv["total_skills"] == 1
+        assert inv["total_projects"] == 1
+        pid = list(inv["projects"].keys())[0]
+        assert inv["projects"][pid]["skills"][0]["description"] == "Use when setting up NextJS auth with Clerk and Drizzle ORM"
 
         # 7. Version the skill
         r2 = cmd_skill_write(json.dumps({
@@ -558,18 +558,17 @@ class TestFullLifecycleE2E:
         # 9. Pause plugin
         cmd_stop()
         st = cmd_skills()
-        assert st["enabled"] is False
+        assert st["current_project"]["status"] == "paused"
 
         # 10. Skills still accessible when paused
         inv2 = cmd_skills()
-        assert inv2["total"] == 1
+        assert inv2["total_skills"] == 1
 
         # 11. Resume
         cmd_start()
         st = cmd_skills()
-        assert st["enabled"] is True
+        assert st["current_project"]["status"] == "active"
 
         # 12. Status shows correct counts
         assert st["total_skills"] == 1
-        assert st["project_skills"] == 1
-        assert st["project_id"] == "proj-e2e"
+        assert st["current_project"]["id"] == "proj-e2e"

@@ -35,6 +35,7 @@ Use the task summary as primary context. For more detail:
   ```bash
   echo "{transcript_path}" | bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" scrape-transcript
   ```
+  The transcript is windowed to the previous prompt cycle only. Entries with `role: "subagent"` contain actions (Write/Edit/Bash) performed by spawned subagents — treat their work as part of the main task.
 
 ### Step 3: Match existing skills
 
