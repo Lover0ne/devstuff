@@ -256,6 +256,8 @@ def _is_real_user_prompt(entry: dict) -> bool:
         return False
     if text.startswith("[Request interrupted"):
         return False
+    if text.startswith("<task-notification"):
+        return False
     return True
 
 
