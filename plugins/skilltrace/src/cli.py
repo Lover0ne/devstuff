@@ -76,6 +76,9 @@ def cmd_init(project_dir: str | None = None) -> dict:
     skills_dir().mkdir(parents=True, exist_ok=True)
     project_skilltrace_dir().mkdir(parents=True, exist_ok=True)
     (project_skilltrace_dir() / "versions").mkdir(parents=True, exist_ok=True)
+    suppress_dir = Path.home() / ".skilltrace-gate"
+    suppress_dir.mkdir(parents=True, exist_ok=True)
+    (suppress_dir / "suppress").write_text("1", encoding="utf-8")
     return {
         "status": "ok",
         "action": "project_initialized",
@@ -148,6 +151,10 @@ def cmd_reminder(hook_data: dict) -> dict:
         return {}
     project_id = marker_data.get("project_id")
     if not project_id:
+        return {}
+    suppress_file = Path.home() / ".skilltrace-gate" / "suppress"
+    if suppress_file.exists():
+        suppress_file.unlink()
         return {}
     tp = hook_data.get("transcript_path", "")
     cwd = os.getcwd()
