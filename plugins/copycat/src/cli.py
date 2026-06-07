@@ -85,7 +85,8 @@ def cmd_registry_remove(template_id: str) -> dict:
 
 
 def cmd_registry_list() -> dict:
-    return {"templates": list_entries(), "count": len(list_entries())}
+    entries = list_entries()
+    return {"templates": entries, "count": len(entries)}
 
 
 def main():

@@ -33,7 +33,6 @@ def _lock(timeout: int = 30):
                     lock_path.unlink()
                 except OSError:
                     pass
-                continue
             time.sleep(delay)
             delay = min(delay * 2, 1.0)
     try:
