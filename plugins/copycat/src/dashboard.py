@@ -120,7 +120,8 @@ a:hover { text-decoration: underline; }
 .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
 .topbar { padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--bg2); display: flex; align-items: center; gap: 14px; }
 .topbar-title { font-size: 15px; font-weight: 600; color: var(--fg2); }
-.topbar-title span { color: var(--accent); }
+.topbar-title .slash { color: #4CAF50; }
+.topbar-title .name { background: linear-gradient(135deg, #b0b8c1, #e0e4e8, #8a929a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .content { flex: 1; overflow-y: auto; padding: 24px; }
 .content.dragging { user-select: none; }
 .empty { text-align: center; padding: 80px 20px; color: var(--fg3); }
