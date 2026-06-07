@@ -1,7 +1,9 @@
 """Registry CRUD for Skillforge. Manages .claude/skillforge/registry.json (project-level)."""
 
 import json
+import os
 import re
+import shutil
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -72,7 +74,8 @@ def load_registry() -> dict:
     except (json.JSONDecodeError, ValueError, OSError):
         old = path.with_suffix(".json.old")
         if path.exists():
-            path.rename(old)
+            shutil.copy2(str(path), str(old))
+            os.remove(str(path))
         reg = _empty_registry()
         atomic_write_json(path, reg)
         return reg

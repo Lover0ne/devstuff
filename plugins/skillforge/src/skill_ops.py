@@ -1,5 +1,6 @@
 """Skill file operations — scaffold, archive, version management for Skillforge."""
 
+import os
 import re
 import shutil
 import uuid
@@ -86,7 +87,8 @@ def _archive_current(skill_id: str, version: int) -> Path | None:
     dst = _version_path(skill_id, version)
     dst.parent.mkdir(parents=True, exist_ok=True)
     try:
-        src.rename(dst)
+        shutil.copy2(str(src), str(dst))
+        os.remove(str(src))
     except OSError as e:
         return {"error": str(e)}
     return dst
@@ -135,7 +137,9 @@ def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -
             if line.startswith("description:"):
                 lines[i] = f'description: "{safe_desc}"\n'
                 break
-        path.write_text("".join(lines), encoding="utf-8")
+        tmp = path.with_suffix(".tmp")
+        tmp.write_text("".join(lines), encoding="utf-8")
+        os.replace(str(tmp), str(path))
 
     return {
         "status": "ok",
@@ -178,10 +182,10 @@ def prepare_create(metadata: dict) -> dict:
     skill_dir = _skill_dir(skill_id)
     skill_dir.mkdir(parents=True, exist_ok=True)
     path = _skill_path(skill_id)
-    path.write_text(
-        _scaffold_content(name),
-        encoding="utf-8",
-    )
+    content = _scaffold_content(name)
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(content, encoding="utf-8")
+    os.replace(str(tmp), str(path))
 
     entry_data = {
         "name": name,
@@ -234,13 +238,13 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
             return error_receipt("Failed to archive current version", "skill_new_version")
 
     path = _skill_path(skill_id)
-    path.write_text(
-        _scaffold_content(
-            existing.get("name", skill_id),
-            existing.get("description", ""),
-        ),
-        encoding="utf-8",
+    content = _scaffold_content(
+        existing.get("name", skill_id),
+        existing.get("description", ""),
     )
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(content, encoding="utf-8")
+    os.replace(str(tmp), str(path))
 
     from src.shared import now_iso
     new_version = current_version + 1

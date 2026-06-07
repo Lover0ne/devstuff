@@ -750,12 +750,12 @@ function renderMd(text) {
 }
 
 function inline(text) {
-  return text
+  return esc(text)
     .replace(/`([^`]+)`/g, '<code>$1</code>')
     .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
     .replace(/\*([^*]+)\*/g, '<em>$1</em>')
     .replace(/\[([^\]]+)\]\(([^)]+)\)/g, (m, label, url) => {
-      if (/^(javascript|data|vbscript):/i.test(url)) return esc(label);
+      if (/^(javascript|data|vbscript):/i.test(url)) return label;
       return `<a href="${url}" target="_blank">${label}</a>`;
     });
 }
