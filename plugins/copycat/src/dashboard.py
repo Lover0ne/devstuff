@@ -95,7 +95,7 @@ a:hover { text-decoration: underline; }
 .sidebar-brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
 .sidebar-brand h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
 .sidebar-brand h2 .slash { color: #4CAF50; }
-.sidebar-brand h2 .name { background: linear-gradient(135deg, #b0b8c1, #e0e4e8, #8a929a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.sidebar-brand h2 .name { color: #c0c4c8; }
 .sidebar-count { font-size: 12px; color: var(--fg3); }
 .search-box { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 13px; outline: none; margin-top: 12px; transition: border 0.2s; }
 .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,188,212,0.15); }
@@ -121,7 +121,7 @@ a:hover { text-decoration: underline; }
 .topbar { padding: 14px 24px; border-bottom: 1px solid var(--border); background: var(--bg2); display: flex; align-items: center; gap: 14px; }
 .topbar-title { font-size: 15px; font-weight: 600; color: var(--fg2); }
 .topbar-title .slash { color: #4CAF50; }
-.topbar-title .name { background: linear-gradient(135deg, #b0b8c1, #e0e4e8, #8a929a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.topbar-title .name { color: #c0c4c8; }
 .content { flex: 1; overflow-y: auto; padding: 24px; }
 .content.dragging { user-select: none; }
 .empty { text-align: center; padding: 80px 20px; color: var(--fg3); }
