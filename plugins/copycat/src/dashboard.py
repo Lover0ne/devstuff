@@ -81,8 +81,9 @@ a:hover { text-decoration: underline; }
   position: fixed; inset: 0; background: var(--bg); z-index: 999;
   display: flex; align-items: center; justify-content: center; flex-direction: column;
 }
-#loading .brand { font-size: 22px; font-weight: 700; color: var(--accent-dark); margin-bottom: 6px; }
-#loading .brand span { color: var(--accent); }
+#loading .brand { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
+#loading .brand .slash { color: #4CAF50; }
+#loading .brand .name { background: linear-gradient(135deg, #b0b8c1, #e0e4e8, #8a929a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 #loading .subtitle { font-size: 13px; color: var(--fg3); margin-bottom: 22px; }
 .progress-track { width: 220px; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
 .progress-bar { width: 40%; height: 100%; background: var(--accent); border-radius: 2px; animation: loadSlide 1.2s ease-in-out infinite; }
@@ -92,8 +93,9 @@ a:hover { text-decoration: underline; }
 .sidebar { width: var(--sidebar-w); background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; flex-shrink: 0; }
 .sidebar-header { padding: 20px; border-bottom: 1px solid var(--border); }
 .sidebar-brand { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
-.sidebar-brand h2 { font-size: 18px; font-weight: 700; color: var(--accent-dark); letter-spacing: -0.3px; }
-.sidebar-brand h2 span { color: var(--accent); }
+.sidebar-brand h2 { font-size: 18px; font-weight: 700; letter-spacing: -0.3px; }
+.sidebar-brand h2 .slash { color: #4CAF50; }
+.sidebar-brand h2 .name { background: linear-gradient(135deg, #b0b8c1, #e0e4e8, #8a929a); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
 .sidebar-count { font-size: 12px; color: var(--fg3); }
 .search-box { width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--fg); font-size: 13px; outline: none; margin-top: 12px; transition: border 0.2s; }
 .search-box:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,188,212,0.15); }
@@ -194,14 +196,14 @@ a:hover { text-decoration: underline; }
 </head>
 <body>
 <div id="loading">
-  <div class="brand"><span>/</span>copycat</div>
+  <div class="brand"><span class="slash">/</span><span class="name">copycat</span></div>
   <div class="subtitle">Loading template inventory...</div>
   <div class="progress-track"><div class="progress-bar"></div></div>
 </div>
 <div class="sidebar">
   <div class="sidebar-header">
     <div class="sidebar-brand">
-      <h2><span>/</span>copycat</h2>
+      <h2><span class="slash">/</span><span class="name">copycat</span></h2>
     </div>
     <div class="sidebar-count" id="templateCount"></div>
     <input class="search-box" id="search" type="text" placeholder="Search by name or source skill...">
@@ -213,7 +215,7 @@ a:hover { text-decoration: underline; }
   <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileMenu()"></div>
   <div class="topbar">
     <button class="hamburger" onclick="toggleMobileMenu()" title="Templates">&#9776;</button>
-    <div class="topbar-title"><span>/</span>copycat &mdash; Template Inventory</div>
+    <div class="topbar-title"><span class="slash">/</span><span class="name">copycat</span> &mdash; Template Inventory</div>
   </div>
   <div class="content" id="content"></div>
 </div>
