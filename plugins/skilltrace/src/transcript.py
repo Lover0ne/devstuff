@@ -90,6 +90,10 @@ def _process_user(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> d
         text = content.strip()
         if not text:
             return None
+        if text.startswith("<task-notification"):
+            return None
+        if text.startswith("[Request interrupted"):
+            return None
         if "skilltrace" in text.lower() and ("<command-" in text or "[SKILLTRACE]" in text or "skilltrace:" in text):
             return None
         return {"role": "user", "text": text[:_MAX_TEXT_LEN]}
@@ -161,6 +165,12 @@ def _process_assistant(entry: dict, pending_tools: dict, filtered_tool_ids: set)
                 if tool_id:
                     filtered_tool_ids.add(tool_id)
                 continue
+            if name == "Agent" and isinstance(inp, dict):
+                agent_text = (str(inp.get("description", "")) + " " + str(inp.get("prompt", ""))).lower()
+                if "skilltrace" in agent_text or "skilltracer" in agent_text:
+                    if tool_id:
+                        filtered_tool_ids.add(tool_id)
+                    continue
             params = _extract_tool_params(name, inp if isinstance(inp, dict) else {})
             tool_entry = {"tool": name}
             if params:
@@ -238,6 +248,21 @@ def _redact_entry(entry: dict) -> dict:
     return entry
 
 
+def _is_interruption(entry: dict) -> bool:
+    if entry.get("type") != "user":
+        return False
+    msg = entry.get("message", {})
+    content = msg.get("content")
+    if isinstance(content, str):
+        return content.strip().startswith("[Request interrupted")
+    if isinstance(content, list):
+        for block in content:
+            if isinstance(block, dict) and block.get("type") == "text":
+                if block.get("text", "").strip().startswith("[Request interrupted"):
+                    return True
+    return False
+
+
 def _is_real_user_prompt(entry: dict) -> bool:
     if entry.get("type") != "user":
         return False
@@ -287,6 +312,8 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 continue
             if entry.get("type") == "system" and entry.get("subtype") == "turn_duration":
                 turn_ended = True
+            if _is_interruption(entry):
+                turn_ended = True
             if _is_real_user_prompt(entry) and turn_ended:
                 prompt_indices.append(raw_index)
                 turn_ended = False
@@ -311,6 +338,12 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
         upper = prompt_indices[-1]
         results = [(i, r) for i, r in results if lower <= i < upper]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if lower <= i < upper]
+    elif len(prompt_indices) == 1:
+        lower = prompt_indices[0]
+        results = [(i, r) for i, r in results if i >= lower]
+        subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if i >= lower]
+    else:
+        return []
     subagent_entries: dict[int, dict] = {}
     if subagent_refs:
         subagent_dir = path.parent / "subagents"
