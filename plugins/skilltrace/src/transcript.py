@@ -94,6 +94,8 @@ def _process_user(entry: dict, pending_tools: dict, filtered_tool_ids: set) -> d
             return None
         if text.startswith("[Request interrupted"):
             return None
+        if text.startswith("<command-") or text.startswith("<local-command"):
+            return None
         if "skilltrace" in text.lower() and ("<command-" in text or "[SKILLTRACE]" in text or "skilltrace:" in text):
             return None
         return {"role": "user", "text": text[:_MAX_TEXT_LEN]}
