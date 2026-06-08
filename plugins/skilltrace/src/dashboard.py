@@ -340,14 +340,6 @@ mark.search-hl { background: #fde68a; color: #92400e; border-radius: 2px; paddin
 mark.search-current { background: #f59e0b; color: #fff; outline: 2px solid #d97706; }
 [data-theme="dark"] mark.search-current { background: #d97706; outline-color: #f59e0b; }
 
-/* Diff minimap */
-.diff-minimap-wrap { position: relative; }
-.diff-minimap { position: absolute; right: 0; top: 0; bottom: 0; width: 12px; background: var(--bg2); border-left: 1px solid var(--border); border-radius: 0 10px 10px 0; cursor: pointer; z-index: 5; }
-.diff-minimap-mark { position: absolute; right: 2px; width: 8px; min-height: 2px; border-radius: 1px; pointer-events: none; }
-.diff-minimap-mark.mm-add { background: var(--diff-add-fg); opacity: 0.7; }
-.diff-minimap-mark.mm-rm { background: var(--diff-rm-fg); opacity: 0.7; }
-.diff-minimap-vp { position: absolute; right: 0; width: 12px; background: var(--accent); opacity: 0.15; border-radius: 2px; pointer-events: none; transition: top 0.05s, height 0.05s; }
-
 /* Hamburger */
 .hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; color: var(--fg); font-size: 20px; align-items: center; justify-content: center; flex-shrink: 0; }
 .sidebar-overlay { display: none; }
@@ -563,7 +555,6 @@ function switchTab(name) {
   const map = {content: 'tabContent', history: 'tabHistory', compare: 'tabCompare'};
   const el = document.getElementById(map[name]);
   if (el) { el.classList.add('active'); if (name === 'history') el.classList.add('md-content'); }
-  if (name === 'compare') requestAnimationFrame(() => buildMinimap(document.querySelector('.modal-body')));
 }
 
 let timelinePageSize = 10;
@@ -678,11 +669,8 @@ function updateDiff() {
   const vA = modalSkill.versions[aIdx].version;
   const vB = modalSkill.versions[bIdx].version;
   const diffHtml = diffMode === 'side' ? renderSideDiff(diff, vA, vB) : renderInlineDiff(diff, vA, vB);
-  document.getElementById('diffOutput').innerHTML = `<div class="diff-minimap-wrap">${diffHtml}</div>`;
+  document.getElementById('diffOutput').innerHTML = diffHtml;
   csClear('compare');
-  if (document.getElementById('tabCompare').classList.contains('active')) {
-    requestAnimationFrame(() => buildMinimap(document.querySelector('.modal-body')));
-  }
 }
 
 function renderSideDiff(diff, vA, vB) {
@@ -923,75 +911,6 @@ function csClearMarks(container) {
 }
 
 // --- Diff minimap ---
-let _mmCleanup = null;
-
-function buildMinimap(scrollContainer) {
-  if (_mmCleanup) { _mmCleanup(); _mmCleanup = null; }
-  const wrap = document.querySelector('.diff-minimap-wrap');
-  if (!wrap || !scrollContainer) return;
-  const old = wrap.querySelector('.diff-minimap');
-  if (old) old.remove();
-  const lines = wrap.querySelectorAll('.diff-pane-line.diff-add, .diff-pane-line.diff-rm, .diff-line.diff-add, .diff-line.diff-rm');
-  if (!lines.length) return;
-  const totalH = scrollContainer.scrollHeight;
-  if (!totalH) return;
-  const scrollRect = scrollContainer.getBoundingClientRect();
-  const scrollTop = scrollContainer.scrollTop;
-  const seen = new Set();
-  const entries = [];
-  for (const el of lines) {
-    const rect = el.getBoundingClientRect();
-    const pos = Math.round(rect.top - scrollRect.top + scrollTop);
-    const key = pos + '_' + Math.round(rect.height);
-    if (seen.has(key)) continue;
-    seen.add(key);
-    entries.push({
-      type: el.classList.contains('diff-add') ? 'add' : 'rm',
-      top: pos,
-      height: rect.height
-    });
-  }
-  entries.sort((a, b) => a.top - b.top);
-  const runs = [];
-  let run = null;
-  for (const e of entries) {
-    if (run && run.type === e.type && e.top <= run.bottom + 2) {
-      run.bottom = Math.max(run.bottom, e.top + e.height);
-    } else {
-      if (run) runs.push(run);
-      run = {type: e.type, top: e.top, bottom: e.top + e.height};
-    }
-  }
-  if (run) runs.push(run);
-  const mm = document.createElement('div');
-  mm.className = 'diff-minimap';
-  for (const r of runs) {
-    const mark = document.createElement('div');
-    mark.className = 'diff-minimap-mark ' + (r.type === 'add' ? 'mm-add' : 'mm-rm');
-    mark.style.top = ((r.top / totalH) * 100).toFixed(2) + '%';
-    mark.style.height = Math.max(0.3, ((r.bottom - r.top) / totalH) * 100).toFixed(2) + '%';
-    mm.appendChild(mark);
-  }
-  const vp = document.createElement('div');
-  vp.className = 'diff-minimap-vp';
-  mm.appendChild(vp);
-  wrap.appendChild(mm);
-  const updateVp = () => {
-    const ratio = scrollContainer.clientHeight / totalH;
-    const top = (scrollContainer.scrollTop / totalH) * 100;
-    vp.style.top = top + '%';
-    vp.style.height = Math.max(4, ratio * 100) + '%';
-  };
-  updateVp();
-  scrollContainer.addEventListener('scroll', updateVp);
-  mm.addEventListener('click', e => {
-    const rect = mm.getBoundingClientRect();
-    const pct = (e.clientY - rect.top) / rect.height;
-    scrollContainer.scrollTop = pct * totalH - scrollContainer.clientHeight / 2;
-  });
-  _mmCleanup = () => scrollContainer.removeEventListener('scroll', updateVp);
-}
-
 function enableDragScroll(el) {
   let isDown = false, startY, scrollTop;
   el.addEventListener('mousedown', e => {
