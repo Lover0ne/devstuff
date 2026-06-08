@@ -7,6 +7,9 @@
 # --- Stage 0: Subagent bypass ---
 INPUT=$(cat)
 
+# Debug: log hook input to inspect subagent fields
+echo "$INPUT" >> "$HOME/.skilltrace-gate/hook-debug.log"
+
 if echo "$INPUT" | grep -q '"parent_tool_use_id"[[:space:]]*:[[:space:]]*"'; then
     exit 0
 fi
