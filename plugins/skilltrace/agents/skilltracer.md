@@ -42,6 +42,7 @@ Use the task summary as primary context. For more detail:
 Compare work against ALL skills from Step 1:
 - Overlapping file paths, same domain, or functional area
 - Changes that extend, fix, or refine what a skill describes
+- If a skill's description/tags seem related but you're unsure, Read its SKILL.md body before deciding
 - Build list of ALL matching skills — each becomes a `new_version`
 - Uncovered work → plan a `create`
 
