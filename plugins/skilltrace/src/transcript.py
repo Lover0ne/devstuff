@@ -31,7 +31,7 @@ def _redact_secrets(text: str) -> str:
         text = pattern.sub(replacement, text)
     return text
 _MAX_ENTRIES = 500
-_MAX_PARAM_LEN = 3000
+_MAX_PARAM_LEN = 20000
 
 _TOOL_KEY_PARAMS = {
     "Write": ["file_path", "content"],
