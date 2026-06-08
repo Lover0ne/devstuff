@@ -563,6 +563,7 @@ function switchTab(name) {
   const map = {content: 'tabContent', history: 'tabHistory', compare: 'tabCompare'};
   const el = document.getElementById(map[name]);
   if (el) { el.classList.add('active'); if (name === 'history') el.classList.add('md-content'); }
+  if (name === 'compare') requestAnimationFrame(() => buildMinimap(document.querySelector('.modal-body')));
 }
 
 let timelinePageSize = 10;
@@ -677,10 +678,11 @@ function updateDiff() {
   const vA = modalSkill.versions[aIdx].version;
   const vB = modalSkill.versions[bIdx].version;
   const diffHtml = diffMode === 'side' ? renderSideDiff(diff, vA, vB) : renderInlineDiff(diff, vA, vB);
-  const scrollEl = document.querySelector('.modal-body');
-  const mmHtml = renderMinimap(diff, scrollEl);
-  document.getElementById('diffOutput').innerHTML = `<div class="diff-minimap-wrap">${diffHtml}${mmHtml}</div>`;
+  document.getElementById('diffOutput').innerHTML = `<div class="diff-minimap-wrap">${diffHtml}</div>`;
   csClear('compare');
+  if (document.getElementById('tabCompare').classList.contains('active')) {
+    requestAnimationFrame(() => buildMinimap(document.querySelector('.modal-body')));
+  }
 }
 
 function renderSideDiff(diff, vA, vB) {
@@ -923,51 +925,71 @@ function csClearMarks(container) {
 // --- Diff minimap ---
 let _mmCleanup = null;
 
-function renderMinimap(diff, scrollContainer) {
+function buildMinimap(scrollContainer) {
   if (_mmCleanup) { _mmCleanup(); _mmCleanup = null; }
-  if (!scrollContainer || !diff.length) return '';
-  const total = diff.length;
-  const marks = [];
-  let run = null;
-  for (let i = 0; i < total; i++) {
-    const t = diff[i].type;
-    if (t === 'add' || t === 'rm') {
-      if (run && run.type === t && run.end === i - 1) { run.end = i; }
-      else { if (run) marks.push(run); run = {type: t, start: i, end: i}; }
-    } else { if (run) { marks.push(run); run = null; } }
-  }
-  if (run) marks.push(run);
-  let html = '<div class="diff-minimap">';
-  for (const m of marks) {
-    const top = ((m.start / total) * 100).toFixed(2);
-    const h = Math.max(2, ((m.end - m.start + 1) / total) * 100);
-    const cls = m.type === 'add' ? 'mm-add' : 'mm-rm';
-    html += `<div class="diff-minimap-mark ${cls}" style="top:${top}%;height:${h.toFixed(2)}%"></div>`;
-  }
-  html += '<div class="diff-minimap-vp" id="mmVp"></div></div>';
-  requestAnimationFrame(() => {
-    const mm = scrollContainer.closest('.diff-minimap-wrap');
-    if (!mm) return;
-    const map = mm.querySelector('.diff-minimap');
-    if (!map) return;
-    const vp = document.getElementById('mmVp');
-    const updateVp = () => {
-      if (!vp || !scrollContainer.scrollHeight) return;
-      const ratio = scrollContainer.clientHeight / scrollContainer.scrollHeight;
-      const top = (scrollContainer.scrollTop / scrollContainer.scrollHeight) * 100;
-      vp.style.top = top + '%';
-      vp.style.height = Math.max(4, ratio * 100) + '%';
-    };
-    updateVp();
-    scrollContainer.addEventListener('scroll', updateVp);
-    map.addEventListener('click', e => {
-      const rect = map.getBoundingClientRect();
-      const pct = (e.clientY - rect.top) / rect.height;
-      scrollContainer.scrollTop = pct * scrollContainer.scrollHeight - scrollContainer.clientHeight / 2;
+  const wrap = document.querySelector('.diff-minimap-wrap');
+  if (!wrap || !scrollContainer) return;
+  const old = wrap.querySelector('.diff-minimap');
+  if (old) old.remove();
+  const lines = wrap.querySelectorAll('.diff-pane-line.diff-add, .diff-pane-line.diff-rm, .diff-line.diff-add, .diff-line.diff-rm');
+  if (!lines.length) return;
+  const totalH = scrollContainer.scrollHeight;
+  if (!totalH) return;
+  const scrollRect = scrollContainer.getBoundingClientRect();
+  const scrollTop = scrollContainer.scrollTop;
+  const seen = new Set();
+  const entries = [];
+  for (const el of lines) {
+    const rect = el.getBoundingClientRect();
+    const pos = Math.round(rect.top - scrollRect.top + scrollTop);
+    const key = pos + '_' + Math.round(rect.height);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    entries.push({
+      type: el.classList.contains('diff-add') ? 'add' : 'rm',
+      top: pos,
+      height: rect.height
     });
-    _mmCleanup = () => scrollContainer.removeEventListener('scroll', updateVp);
+  }
+  entries.sort((a, b) => a.top - b.top);
+  const runs = [];
+  let run = null;
+  for (const e of entries) {
+    if (run && run.type === e.type && e.top <= run.bottom + 2) {
+      run.bottom = Math.max(run.bottom, e.top + e.height);
+    } else {
+      if (run) runs.push(run);
+      run = {type: e.type, top: e.top, bottom: e.top + e.height};
+    }
+  }
+  if (run) runs.push(run);
+  const mm = document.createElement('div');
+  mm.className = 'diff-minimap';
+  for (const r of runs) {
+    const mark = document.createElement('div');
+    mark.className = 'diff-minimap-mark ' + (r.type === 'add' ? 'mm-add' : 'mm-rm');
+    mark.style.top = ((r.top / totalH) * 100).toFixed(2) + '%';
+    mark.style.height = Math.max(0.3, ((r.bottom - r.top) / totalH) * 100).toFixed(2) + '%';
+    mm.appendChild(mark);
+  }
+  const vp = document.createElement('div');
+  vp.className = 'diff-minimap-vp';
+  mm.appendChild(vp);
+  wrap.appendChild(mm);
+  const updateVp = () => {
+    const ratio = scrollContainer.clientHeight / totalH;
+    const top = (scrollContainer.scrollTop / totalH) * 100;
+    vp.style.top = top + '%';
+    vp.style.height = Math.max(4, ratio * 100) + '%';
+  };
+  updateVp();
+  scrollContainer.addEventListener('scroll', updateVp);
+  mm.addEventListener('click', e => {
+    const rect = mm.getBoundingClientRect();
+    const pct = (e.clientY - rect.top) / rect.height;
+    scrollContainer.scrollTop = pct * totalH - scrollContainer.clientHeight / 2;
   });
-  return html;
+  _mmCleanup = () => scrollContainer.removeEventListener('scroll', updateVp);
 }
 
 function enableDragScroll(el) {
