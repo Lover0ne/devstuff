@@ -328,6 +328,26 @@ a:hover { text-decoration: underline; }
 .diff-rm { background: var(--diff-rm); color: var(--diff-rm-fg); }
 .diff-ctx { color: var(--fg3); }
 
+/* Content search */
+.content-search { display: flex; align-items: center; gap: 8px; padding: 8px 14px; background: var(--bg2); border: 1px solid var(--border); border-radius: 10px; margin-bottom: 14px; position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px); }
+.content-search input { flex: 1; border: none; background: transparent; color: var(--fg); font-size: 13px; outline: none; min-width: 0; }
+.content-search input::placeholder { color: var(--fg3); }
+.content-search .cs-nav { display: flex; align-items: center; gap: 2px; font-size: 12px; color: var(--fg3); white-space: nowrap; }
+.content-search .cs-btn { background: none; border: 1px solid var(--border); border-radius: 6px; width: 26px; height: 26px; cursor: pointer; color: var(--fg2); font-size: 13px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; flex-shrink: 0; }
+.content-search .cs-btn:hover { background: var(--bg3); border-color: var(--accent); }
+mark.search-hl { background: #fde68a; color: #92400e; border-radius: 2px; padding: 0 1px; }
+[data-theme="dark"] mark.search-hl { background: #854d0e; color: #fef3c7; }
+mark.search-current { background: #f59e0b; color: #fff; outline: 2px solid #d97706; }
+[data-theme="dark"] mark.search-current { background: #d97706; outline-color: #f59e0b; }
+
+/* Diff minimap */
+.diff-minimap-wrap { position: relative; }
+.diff-minimap { position: absolute; right: 0; top: 0; bottom: 0; width: 12px; background: var(--bg2); border-left: 1px solid var(--border); border-radius: 0 10px 10px 0; cursor: pointer; z-index: 5; }
+.diff-minimap-mark { position: absolute; right: 2px; width: 8px; min-height: 2px; border-radius: 1px; pointer-events: none; }
+.diff-minimap-mark.mm-add { background: var(--diff-add-fg); opacity: 0.7; }
+.diff-minimap-mark.mm-rm { background: var(--diff-rm-fg); opacity: 0.7; }
+.diff-minimap-vp { position: absolute; right: 0; width: 12px; background: var(--accent); opacity: 0.15; border-radius: 2px; pointer-events: none; transition: top 0.05s, height 0.05s; }
+
 /* Hamburger */
 .hamburger { display: none; background: none; border: 1px solid var(--border); border-radius: 8px; width: 36px; height: 36px; cursor: pointer; color: var(--fg); font-size: 20px; align-items: center; justify-content: center; flex-shrink: 0; }
 .sidebar-overlay { display: none; }
@@ -525,7 +545,7 @@ function viewSkill(idx) {
   document.getElementById('tabContent').className = 'tab-content active md-content';
   const currentVh = (s.version_history || []).find(h => h.version === current.version);
   const versionInfo = `<div style="font-size:12px;color:var(--fg3);margin-bottom:16px;padding-bottom:10px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center"><span>Version ${current.version}${currentVh ? ' &middot; Created ' + fmtDate(currentVh.created_at) : ''} &middot; ${esc(s.description || '')}</span><button class="btn" onclick="copyCurrentSkill(this)" style="font-size:13px;font-weight:500;padding:5px 14px;flex-shrink:0;margin-left:12px">Copy skill content</button></div>`;
-  document.getElementById('tabContent').innerHTML = versionInfo + renderMd(current.content);
+  document.getElementById('tabContent').innerHTML = contentSearchHTML('content') + versionInfo + renderMd(current.content);
   if (hasManyVersions) {
     renderTimeline();
     renderCompare();
@@ -536,6 +556,7 @@ function viewSkill(idx) {
 }
 
 function switchTab(name) {
+  csClear('content'); csClear('compare');
   document.querySelectorAll('.modal-tab').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   event.target.classList.add('active');
@@ -626,7 +647,7 @@ function renderCompare() {
       <button class="${diffMode==='side'?'active':''}" onclick="setDiffMode('side')">Side by side</button>
       <button class="${diffMode==='inline'?'active':''}" onclick="setDiffMode('inline')">Inline</button>
     </div>
-  </div><div id="diffOutput"></div>`;
+  </div>${contentSearchHTML('compare')}<div id="diffOutput"></div>`;
   document.getElementById('tabCompare').innerHTML = html;
   updateDiff();
 }
@@ -655,7 +676,11 @@ function updateDiff() {
   const diff = lineDiff(a, b);
   const vA = modalSkill.versions[aIdx].version;
   const vB = modalSkill.versions[bIdx].version;
-  document.getElementById('diffOutput').innerHTML = diffMode === 'side' ? renderSideDiff(diff, vA, vB) : renderInlineDiff(diff, vA, vB);
+  const diffHtml = diffMode === 'side' ? renderSideDiff(diff, vA, vB) : renderInlineDiff(diff, vA, vB);
+  const scrollEl = document.querySelector('.modal-body');
+  const mmHtml = renderMinimap(diff, scrollEl);
+  document.getElementById('diffOutput').innerHTML = `<div class="diff-minimap-wrap">${diffHtml}${mmHtml}</div>`;
+  csClear('compare');
 }
 
 function renderSideDiff(diff, vA, vB) {
@@ -816,6 +841,134 @@ function copyCurrentSkill(btn) {
 function fmtDate(s) { if (!s) return '—'; try { return new Date(s).toLocaleDateString('en-GB', {day:'numeric',month:'short',year:'numeric'}); } catch(e) { return s; } }
 
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+// --- Content search ---
+let _csMatches = [], _csIdx = -1, _csContainer = null, _csDebounce = null;
+
+function contentSearchHTML(id) {
+  return `<div class="content-search" id="cs-${id}"><input type="text" placeholder="Search in content..." oninput="csInput('${id}',this.value)" onkeydown="csKey(event,'${id}')"><div class="cs-nav"><span id="cs-count-${id}"></span><button class="cs-btn" onclick="csNav('${id}',-1)" title="Previous (Shift+Enter)">&#9650;</button><button class="cs-btn" onclick="csNav('${id}',1)" title="Next (Enter)">&#9660;</button><button class="cs-btn" onclick="csClear('${id}')" title="Clear">&times;</button></div></div>`;
+}
+
+function csInput(id, q) {
+  clearTimeout(_csDebounce);
+  _csDebounce = setTimeout(() => csHighlight(id, q), 150);
+}
+
+function csKey(e, id) {
+  if (e.key === 'Enter') { e.preventDefault(); csNav(id, e.shiftKey ? -1 : 1); }
+}
+
+function csHighlight(id, query) {
+  const container = id === 'content' ? document.getElementById('tabContent') : document.getElementById('diffOutput');
+  csClearMarks(container);
+  _csMatches = []; _csIdx = -1; _csContainer = container;
+  const counter = document.getElementById('cs-count-' + id);
+  if (!query || query.length < 2) { counter.textContent = ''; return; }
+  const lq = query.toLowerCase();
+  const walker = document.createTreeWalker(container, NodeFilter.SHOW_TEXT, null);
+  const hits = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode;
+    if (node.parentElement.closest('script,style,.content-search')) continue;
+    const text = node.textContent;
+    const lower = text.toLowerCase();
+    let pos = 0;
+    while ((pos = lower.indexOf(lq, pos)) !== -1) {
+      hits.push({node, start: pos, len: query.length});
+      pos += query.length;
+    }
+  }
+  for (let i = hits.length - 1; i >= 0; i--) {
+    const h = hits[i];
+    const range = document.createRange();
+    range.setStart(h.node, h.start);
+    range.setEnd(h.node, h.start + h.len);
+    const mark = document.createElement('mark');
+    mark.className = 'search-hl';
+    range.surroundContents(mark);
+  }
+  _csMatches = container.querySelectorAll('mark.search-hl');
+  counter.textContent = _csMatches.length ? `0/${_csMatches.length}` : 'No matches';
+  if (_csMatches.length) csNav(id, 1);
+}
+
+function csNav(id, dir) {
+  if (!_csMatches.length) return;
+  if (_csIdx >= 0 && _csIdx < _csMatches.length) _csMatches[_csIdx].classList.remove('search-current');
+  _csIdx = (_csIdx + dir + _csMatches.length) % _csMatches.length;
+  _csMatches[_csIdx].classList.add('search-current');
+  _csMatches[_csIdx].scrollIntoView({block: 'center', behavior: 'smooth'});
+  document.getElementById('cs-count-' + id).textContent = `${_csIdx + 1}/${_csMatches.length}`;
+}
+
+function csClear(id) {
+  const container = id === 'content' ? document.getElementById('tabContent') : document.getElementById('diffOutput');
+  csClearMarks(container);
+  _csMatches = []; _csIdx = -1;
+  const counter = document.getElementById('cs-count-' + id);
+  if (counter) counter.textContent = '';
+  const input = document.querySelector('#cs-' + id + ' input');
+  if (input) input.value = '';
+}
+
+function csClearMarks(container) {
+  if (!container) return;
+  container.querySelectorAll('mark.search-hl').forEach(m => {
+    const parent = m.parentNode;
+    parent.replaceChild(document.createTextNode(m.textContent), m);
+    parent.normalize();
+  });
+}
+
+// --- Diff minimap ---
+let _mmCleanup = null;
+
+function renderMinimap(diff, scrollContainer) {
+  if (_mmCleanup) { _mmCleanup(); _mmCleanup = null; }
+  if (!scrollContainer || !diff.length) return '';
+  const total = diff.length;
+  const marks = [];
+  let run = null;
+  for (let i = 0; i < total; i++) {
+    const t = diff[i].type;
+    if (t === 'add' || t === 'rm') {
+      if (run && run.type === t && run.end === i - 1) { run.end = i; }
+      else { if (run) marks.push(run); run = {type: t, start: i, end: i}; }
+    } else { if (run) { marks.push(run); run = null; } }
+  }
+  if (run) marks.push(run);
+  let html = '<div class="diff-minimap">';
+  for (const m of marks) {
+    const top = ((m.start / total) * 100).toFixed(2);
+    const h = Math.max(2, ((m.end - m.start + 1) / total) * 100);
+    const cls = m.type === 'add' ? 'mm-add' : 'mm-rm';
+    html += `<div class="diff-minimap-mark ${cls}" style="top:${top}%;height:${h.toFixed(2)}%"></div>`;
+  }
+  html += '<div class="diff-minimap-vp" id="mmVp"></div></div>';
+  requestAnimationFrame(() => {
+    const mm = scrollContainer.closest('.diff-minimap-wrap');
+    if (!mm) return;
+    const map = mm.querySelector('.diff-minimap');
+    if (!map) return;
+    const vp = document.getElementById('mmVp');
+    const updateVp = () => {
+      if (!vp || !scrollContainer.scrollHeight) return;
+      const ratio = scrollContainer.clientHeight / scrollContainer.scrollHeight;
+      const top = (scrollContainer.scrollTop / scrollContainer.scrollHeight) * 100;
+      vp.style.top = top + '%';
+      vp.style.height = Math.max(4, ratio * 100) + '%';
+    };
+    updateVp();
+    scrollContainer.addEventListener('scroll', updateVp);
+    map.addEventListener('click', e => {
+      const rect = map.getBoundingClientRect();
+      const pct = (e.clientY - rect.top) / rect.height;
+      scrollContainer.scrollTop = pct * scrollContainer.scrollHeight - scrollContainer.clientHeight / 2;
+    });
+    _mmCleanup = () => scrollContainer.removeEventListener('scroll', updateVp);
+  });
+  return html;
+}
 
 function enableDragScroll(el) {
   let isDown = false, startY, scrollTop;
