@@ -288,14 +288,18 @@ def _is_real_user_prompt(entry: dict) -> bool:
     return True
 
 
-def scrape_transcript(transcript_path: str) -> list[dict]:
+def _scrape_transcript_impl(
+    transcript_path: str,
+    lower_boundary: int | None = None,
+) -> tuple[list[dict], int | None]:
+    """Internal: scrape transcript with optional boundary. Returns (entries, new_boundary)."""
     path = Path(transcript_path).resolve()
     if ".." in path.parts:
-        return []
+        return [], None
     if not path.suffix == ".jsonl":
-        return []
+        return [], None
     if not path.exists():
-        return []
+        return [], None
     pending_tools: dict[str, str] = {}
     filtered_tool_ids: set[str] = set()
     results = []
@@ -335,9 +339,14 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
                 if processed:
                     results.append((raw_index, processed))
             raw_index += 1
+    new_boundary = prompt_indices[-1] if prompt_indices else None
     if len(prompt_indices) >= 2:
-        lower = prompt_indices[-2]
         upper = prompt_indices[-1]
+        if lower_boundary is not None:
+            candidates = [p for p in prompt_indices if p <= lower_boundary and p < upper]
+            lower = candidates[-1] if candidates else prompt_indices[-2]
+        else:
+            lower = prompt_indices[-2]
         results = [(i, r) for i, r in results if lower <= i < upper]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if lower <= i < upper]
     elif len(prompt_indices) == 1:
@@ -345,7 +354,7 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
         results = [(i, r) for i, r in results if i >= lower]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if i >= lower]
     else:
-        return []
+        return [], None
     subagent_entries: dict[int, dict] = {}
     if subagent_refs:
         subagent_dir = path.parent / "subagents"
@@ -365,4 +374,10 @@ def scrape_transcript(transcript_path: str) -> list[dict]:
             final.append(subagent_entries[idx])
     if len(final) > _MAX_ENTRIES:
         final = final[-_MAX_ENTRIES:]
-    return final
+    return final, new_boundary
+
+
+def scrape_transcript(transcript_path: str) -> list[dict]:
+    """Public API — returns entries only, backwards compatible."""
+    entries, _ = _scrape_transcript_impl(transcript_path)
+    return entries
