@@ -101,6 +101,65 @@ def test_extracts_search_query(tmp_path):
     assert result[1]["tools"][0]["params"] == {"query": "JWT guide"}
 
 
+def test_mcp_generic_params_captured(tmp_path):
+    f = tmp_path / "t.jsonl"
+    _write_entries(f, [
+        _USER_PROMPT,
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "mcp__plugin_playwright_playwright__browser_click", "input": {
+                "target": "button[type=submit]",
+                "element": "Login button",
+            }},
+        ]}},
+    ])
+    result = scrape_transcript(str(f))
+    params = result[1]["tools"][0]["params"]
+    assert params["target"] == "button[type=submit]"
+    assert params["element"] == "Login button"
+
+
+def test_mcp_generic_params_capped_at_5(tmp_path):
+    f = tmp_path / "t.jsonl"
+    _write_entries(f, [
+        _USER_PROMPT,
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "mcp__custom__big_tool", "input": {
+                "a": "1", "b": "2", "c": "3", "d": "4", "e": "5", "f": "6", "g": "7",
+            }},
+        ]}},
+    ])
+    result = scrape_transcript(str(f))
+    params = result[1]["tools"][0]["params"]
+    assert len(params) == 5
+
+
+def test_mcp_search_still_uses_query_shortcut(tmp_path):
+    f = tmp_path / "t.jsonl"
+    _write_entries(f, [
+        _USER_PROMPT,
+        {"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "mcp__brave-search__brave_web_search", "input": {
+                "query": "test query", "count": 10, "extra": "ignored",
+            }},
+        ]}},
+    ])
+    result = scrape_transcript(str(f))
+    params = result[1]["tools"][0]["params"]
+    assert params == {"query": "test query"}
+
+
+def test_mcp_params_in_subagent(tmp_path):
+    sa = tmp_path / "agent-mcp2.jsonl"
+    sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+        {"type": "tool_use", "name": "mcp__plugin_playwright_playwright__browser_navigate", "input": {
+            "url": "https://example.com/login",
+        }},
+    ]}}) + "\n", encoding="utf-8")
+    actions = _scrape_subagent(sa)
+    assert len(actions) == 1
+    assert actions[0]["params"]["url"] == "https://example.com/login"
+
+
 def test_skips_attachment_entries(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [

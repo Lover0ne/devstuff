@@ -62,6 +62,9 @@ def _truncate_param(value: str) -> str:
     return value
 
 
+_MAX_MCP_PARAMS = 5
+
+
 def _extract_tool_params(tool_name: str, tool_input: dict) -> dict:
     keys = _TOOL_KEY_PARAMS.get(tool_name)
     if keys:
@@ -72,6 +75,8 @@ def _extract_tool_params(tool_name: str, tool_input: dict) -> dict:
     if "fetch" in tool_name.lower() or "navigate" in tool_name.lower():
         u = tool_input.get("url")
         return {"url": u} if u else {}
+    if tool_name.startswith("mcp__"):
+        return {k: _truncate_param(str(v)) for k, v in list(tool_input.items())[:_MAX_MCP_PARAMS]}
     return {}
 
 
