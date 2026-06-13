@@ -28,14 +28,15 @@ Follow the `instructions` field in the response.
 
 ### Step 2: Understand the work
 
-Use the task summary as primary context. For more detail:
+**ALWAYS scrape the transcript. NEVER skip this step.** The task summary from Claude main may understate or mischaracterize the work — it is a hint, not a verdict. You must verify independently.
 
-- **Read files directly** — changed files, their content and structure
-- **Scrape transcript** — step-by-step details, commands, corrections:
-  ```bash
-  echo "{transcript_path}" | bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" scrape-transcript
-  ```
-  The transcript is windowed to the previous prompt cycle only. Entries with `role: "subagent"` contain actions (Write/Edit/Bash) performed by spawned subagents — treat their work as part of the main task.
+```bash
+echo "{transcript_path}" | bash "${CLAUDE_PLUGIN_ROOT}/hooks/wrapper.sh" scrape-transcript
+```
+
+The transcript is windowed to the previous prompt cycle only. Entries with `role: "subagent"` contain actions (Write/Edit/Bash) performed by spawned subagents — treat their work as part of the main task. Entries with `role: "workflow"` contain grouped agent actions from orchestrated workflows.
+
+After scraping, **read changed files directly** if you need more context on what was built or modified.
 
 ### Step 3: Match existing skills
 
@@ -45,6 +46,11 @@ Compare work against ALL skills from Step 1:
 - If a skill's description/tags seem related but you're unsure, Read its SKILL.md body before deciding
 - Build list of ALL matching skills — each becomes a `new_version`
 - Uncovered work → plan a `create`
+
+**If a Skill tool was invoked in the transcript** (the user used an existing skill), the work that follows derives from that skill. Evaluate whether the result:
+- Is a faithful reproduction of the skill → **do nothing** (already captured)
+- Contains significant specializations that form a different reusable pattern → **create a new skill** for the specific pattern (do NOT duplicate the original)
+- Improves or extends the original skill → **version the existing skill**
 
 ### Step 4: Call skill-write (for each skill)
 
