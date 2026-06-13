@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.transcript import scrape_transcript, _scrape_transcript_impl, _redact_secrets, _scrape_subagent
+from src.transcript import scrape_transcript, _scrape_transcript_impl, _redact_secrets, _scrape_subagent, _scrape_workflow
 
 
 def _write_entries(path: Path, entries: list[dict]):
@@ -471,3 +471,192 @@ class TestSubagentScraping:
         actions = _scrape_subagent(sa)
         assert len(actions) == 1
         assert actions[0]["tool"] == "mcp__brave__search"
+
+
+def _make_workflow_agent_jsonl(entries: list[dict]) -> str:
+    return "\n".join(json.dumps(e) for e in entries) + "\n"
+
+
+def _make_workflow_tooluse_result(wf_dir: str, wf_name: str = "my-workflow", summary: str = "did stuff"):
+    return {
+        "type": "user",
+        "toolUseResult": {
+            "status": "async_launched",
+            "taskType": "local_workflow",
+            "transcriptDir": wf_dir,
+            "workflowName": wf_name,
+            "runId": "wf_abc123",
+            "summary": summary,
+        },
+    }
+
+
+class TestWorkflowScraping:
+
+    def test_scrape_workflow_empty_dir(self, tmp_path):
+        wf_dir = tmp_path / "wf_test"
+        wf_dir.mkdir()
+        actions, count = _scrape_workflow(str(wf_dir))
+        assert actions == []
+        assert count == 0
+
+    def test_scrape_workflow_nonexistent_dir(self, tmp_path):
+        actions, count = _scrape_workflow(str(tmp_path / "nonexistent"))
+        assert actions == []
+        assert count == 0
+
+    def test_scrape_workflow_extracts_agent_actions(self, tmp_path):
+        wf_dir = tmp_path / "wf_test"
+        wf_dir.mkdir()
+        agent_file = wf_dir / "agent-a1.jsonl"
+        agent_file.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/out.py", "content": "code"}},
+            ]}},
+        ]), encoding="utf-8")
+        actions, count = _scrape_workflow(str(wf_dir))
+        assert count == 1
+        assert len(actions) == 1
+        assert actions[0]["tool"] == "Write"
+
+    def test_scrape_workflow_multiple_agents(self, tmp_path):
+        wf_dir = tmp_path / "wf_test"
+        wf_dir.mkdir()
+        for i in range(3):
+            af = wf_dir / f"agent-a{i}.jsonl"
+            af.write_text(_make_workflow_agent_jsonl([
+                {"type": "assistant", "message": {"content": [
+                    {"type": "tool_use", "name": "Edit", "input": {"file_path": f"/f{i}.py", "old_string": "a", "new_string": "b"}},
+                ]}},
+            ]), encoding="utf-8")
+        actions, count = _scrape_workflow(str(wf_dir))
+        assert count == 3
+        assert len(actions) == 3
+
+    def test_scrape_workflow_respects_agent_cap(self, tmp_path):
+        wf_dir = tmp_path / "wf_test"
+        wf_dir.mkdir()
+        for i in range(60):
+            af = wf_dir / f"agent-a{i:04d}.jsonl"
+            af.write_text(_make_workflow_agent_jsonl([
+                {"type": "assistant", "message": {"content": [
+                    {"type": "tool_use", "name": "Bash", "input": {"command": f"echo {i}"}},
+                ]}},
+            ]), encoding="utf-8")
+        actions, count = _scrape_workflow(str(wf_dir))
+        assert count == 60
+        assert len(actions) == 50
+
+    def test_workflow_detected_in_transcript(self, tmp_path):
+        wf_dir = tmp_path / "subagents" / "workflows" / "wf_test"
+        wf_dir.mkdir(parents=True)
+        af = wf_dir / "agent-a1.jsonl"
+        af.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/out.py", "content": "hello"}},
+            ]}},
+        ]), encoding="utf-8")
+        f = tmp_path / "transcript.jsonl"
+        _write_entries(f, [
+            _make_prompt("run workflow"),
+            _make_tool_use("Workflow", {"script": "export const meta = {}"}),
+            _make_workflow_tooluse_result(str(wf_dir), "build-app", "built app"),
+            _turn_end(),
+            _make_prompt("next prompt"),
+        ])
+        entries, boundary = _scrape_transcript_impl(str(f))
+        wf_entries = [e for e in entries if e.get("role") == "workflow"]
+        assert len(wf_entries) == 1
+        assert wf_entries[0]["name"] == "build-app"
+        assert wf_entries[0]["summary"] == "built app"
+        assert wf_entries[0]["agent_count"] == 1
+        assert len(wf_entries[0]["actions"]) == 1
+        assert wf_entries[0]["actions"][0]["tool"] == "Write"
+
+    def test_workflow_skilltrace_filtered(self, tmp_path):
+        f = tmp_path / "transcript.jsonl"
+        _write_entries(f, [
+            _make_prompt("do stuff"),
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "id": "wf1", "name": "Workflow", "input": {
+                    "script": "export const meta = {name: 'skilltrace-audit'}",
+                }},
+            ]}},
+            _turn_end(),
+            _make_prompt("next"),
+        ])
+        entries, _ = _scrape_transcript_impl(str(f))
+        wf_tools = [t for e in entries if "tools" in e for t in e["tools"] if t["tool"] == "Workflow"]
+        assert len(wf_tools) == 0
+
+    def test_workflow_ref_skilltrace_filtered(self, tmp_path):
+        wf_dir = tmp_path / "subagents" / "workflows" / "wf_st"
+        wf_dir.mkdir(parents=True)
+        af = wf_dir / "agent-a1.jsonl"
+        af.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/x.py", "content": "y"}},
+            ]}},
+        ]), encoding="utf-8")
+        f = tmp_path / "transcript.jsonl"
+        _write_entries(f, [
+            _make_prompt("analyze"),
+            _make_tool_use("Workflow", {"script": "audit"}),
+            _make_workflow_tooluse_result(str(wf_dir), "skilltrace-audit", "audit skilltrace"),
+            _turn_end(),
+            _make_prompt("next"),
+        ])
+        entries, _ = _scrape_transcript_impl(str(f))
+        wf_entries = [e for e in entries if e.get("role") == "workflow"]
+        assert len(wf_entries) == 0
+
+    def test_workflow_and_subagent_coexist(self, tmp_path):
+        wf_dir = tmp_path / "subagents" / "workflows" / "wf_test"
+        wf_dir.mkdir(parents=True)
+        wf_agent = wf_dir / "agent-wf1.jsonl"
+        wf_agent.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/wf.py", "content": "wf"}},
+            ]}},
+        ]), encoding="utf-8")
+        sa_dir = tmp_path / "subagents"
+        sa_file = sa_dir / "agent-sub1.jsonl"
+        sa_file.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Edit", "input": {"file_path": "/sa.py", "old_string": "a", "new_string": "b"}},
+        ]}}) + "\n", encoding="utf-8")
+        f = tmp_path / "transcript.jsonl"
+        _write_entries(f, [
+            _make_prompt("do both"),
+            _make_tool_use("Agent", {"description": "review", "prompt": "check"}, "ag1"),
+            {"type": "user", "toolUseResult": {
+                "isAsync": True, "agentId": "sub1", "description": "review",
+            }, "message": {"role": "user", "content": [
+                {"type": "tool_result", "tool_use_id": "ag1", "content": "review done"},
+            ]}},
+            _make_tool_use("Workflow", {"script": "build"}, "wf1"),
+            _make_workflow_tooluse_result(str(wf_dir), "build-app", "built"),
+            _turn_end(),
+            _make_prompt("next"),
+        ])
+        entries, _ = _scrape_transcript_impl(str(f))
+        sa_entries = [e for e in entries if e.get("role") == "subagent"]
+        wf_entries = [e for e in entries if e.get("role") == "workflow"]
+        assert len(sa_entries) == 1
+        assert len(wf_entries) == 1
+        assert sa_entries[0]["actions"][0]["tool"] == "Edit"
+        assert wf_entries[0]["actions"][0]["tool"] == "Write"
+
+    def test_workflow_tool_params_extracted(self, tmp_path):
+        f = tmp_path / "t.jsonl"
+        _write_entries(f, [
+            _make_prompt("run it"),
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Workflow", "input": {
+                    "script": "export const meta = {name: 'test'}",
+                }},
+            ]}},
+        ])
+        result = scrape_transcript(str(f))
+        wf_tools = [t for e in result if "tools" in e for t in e["tools"] if t["tool"] == "Workflow"]
+        assert len(wf_tools) == 1
+        assert "script" in wf_tools[0]["params"]

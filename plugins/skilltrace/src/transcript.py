@@ -48,6 +48,7 @@ _TOOL_KEY_PARAMS = {
     "Glob": ["pattern"],
     "Grep": ["pattern", "path"],
     "Agent": ["description", "subagent_type", "prompt"],
+    "Workflow": ["script"],
     "Skill": ["skill"],
     "NotebookEdit": ["notebook_path", "new_source"],
 }
@@ -179,6 +180,12 @@ def _process_assistant(entry: dict, pending_tools: dict, filtered_tool_ids: set)
                     if tool_id:
                         filtered_tool_ids.add(tool_id)
                     continue
+            if name == "Workflow" and isinstance(inp, dict):
+                script_text = str(inp.get("script", "")).lower()
+                if "skilltrace" in script_text or "skilltracer" in script_text:
+                    if tool_id:
+                        filtered_tool_ids.add(tool_id)
+                    continue
             params = _extract_tool_params(name, inp if isinstance(inp, dict) else {})
             tool_entry = {"tool": name}
             if params:
@@ -237,6 +244,26 @@ def _scrape_subagent(subagent_path: Path) -> list[dict]:
     except OSError:
         return []
     return actions
+
+
+_MAX_WORKFLOW_AGENTS = 50
+_MAX_WORKFLOW_ACTIONS = 200
+
+
+def _scrape_workflow(workflow_dir: str) -> tuple[list[dict], int]:
+    wf_path = Path(workflow_dir)
+    if not wf_path.is_dir():
+        return [], 0
+    agent_files = sorted(wf_path.glob("agent-*.jsonl"))
+    agent_count = len(agent_files)
+    all_actions: list[dict] = []
+    for af in agent_files[:_MAX_WORKFLOW_AGENTS]:
+        actions = _scrape_subagent(af)
+        all_actions.extend(actions)
+        if len(all_actions) >= _MAX_WORKFLOW_ACTIONS:
+            all_actions = all_actions[:_MAX_WORKFLOW_ACTIONS]
+            break
+    return all_actions, agent_count
 
 
 def _redact_entry(entry: dict) -> dict:
@@ -309,6 +336,7 @@ def _scrape_transcript_impl(
     results = []
     prompt_indices = []
     subagent_refs: list[tuple[int, str, str]] = []
+    workflow_refs: list[tuple[int, str, str, str]] = []
     raw_index = 0
     turn_ended = True
     with open(path, encoding="utf-8") as f:
@@ -330,11 +358,17 @@ def _scrape_transcript_impl(
             etype = entry.get("type")
             if etype == "user":
                 tr = entry.get("toolUseResult")
-                if isinstance(tr, dict) and tr.get("isAsync") and tr.get("agentId"):
-                    agent_id = tr["agentId"]
-                    desc = tr.get("description", "") + " " + tr.get("prompt", "")
-                    if "skilltrace" not in desc.lower():
-                        subagent_refs.append((raw_index, agent_id, tr.get("description", "")))
+                if isinstance(tr, dict):
+                    if tr.get("isAsync") and tr.get("agentId"):
+                        agent_id = tr["agentId"]
+                        desc = tr.get("description", "") + " " + tr.get("prompt", "")
+                        if "skilltrace" not in desc.lower():
+                            subagent_refs.append((raw_index, agent_id, tr.get("description", "")))
+                    elif tr.get("taskType") == "local_workflow" and tr.get("transcriptDir"):
+                        wf_name = tr.get("workflowName", "workflow")
+                        wf_summary = tr.get("summary", "")
+                        if "skilltrace" not in wf_name.lower() and "skilltrace" not in wf_summary.lower():
+                            workflow_refs.append((raw_index, tr["transcriptDir"], wf_name, wf_summary))
                 processed = _process_user(entry, pending_tools, filtered_tool_ids)
                 if processed:
                     results.append((raw_index, processed))
@@ -353,10 +387,12 @@ def _scrape_transcript_impl(
             lower = prompt_indices[-2]
         results = [(i, r) for i, r in results if lower <= i < upper]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if lower <= i < upper]
+        workflow_refs = [(i, d, n, s) for i, d, n, s in workflow_refs if lower <= i < upper]
     elif len(prompt_indices) == 1:
         lower = prompt_indices[0]
         results = [(i, r) for i, r in results if i >= lower]
         subagent_refs = [(i, aid, desc) for i, aid, desc in subagent_refs if i >= lower]
+        workflow_refs = [(i, d, n, s) for i, d, n, s in workflow_refs if i >= lower]
     else:
         return [], None
     subagent_entries: dict[int, dict] = {}
@@ -371,11 +407,24 @@ def _scrape_transcript_impl(
                     "description": desc,
                     "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in actions],
                 }
+    workflow_results: list[dict] = []
+    if workflow_refs:
+        for _idx, wf_dir, wf_name, wf_summary in workflow_refs:
+            actions, agent_count = _scrape_workflow(wf_dir)
+            if actions:
+                workflow_results.append({
+                    "role": "workflow",
+                    "name": wf_name,
+                    "summary": wf_summary,
+                    "agent_count": agent_count,
+                    "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in actions],
+                })
     final = []
     for idx, r in results:
         final.append(_redact_entry(r))
         if idx in subagent_entries:
             final.append(subagent_entries[idx])
+    final.extend(workflow_results)
     if len(final) > _MAX_ENTRIES:
         final = final[-_MAX_ENTRIES:]
     return final, new_boundary
