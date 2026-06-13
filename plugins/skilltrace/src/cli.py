@@ -29,9 +29,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from src.shared import receipt, error_receipt, skilltrace_dir, skills_dir, project_skilltrace_dir, find_or_create_project_id, now_iso, write_marker, read_marker
-from src.config import load_config, is_enabled, set_enabled
+from src.config import load_config, is_enabled
 from src.registry import add_entry, remove_entry, list_entries
-from src.transcript import scrape_transcript, _scrape_transcript_impl
+from src.transcript import _scrape_transcript_impl
 from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 

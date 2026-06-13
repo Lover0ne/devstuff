@@ -15,6 +15,9 @@ def _write_entries(path: Path, entries: list[dict]):
     )
 
 
+_USER_PROMPT = {"type": "user", "message": {"role": "user", "content": "do the task"}}
+
+
 def test_empty_file(tmp_path):
     f = tmp_path / "transcript.jsonl"
     f.write_text("")
@@ -38,59 +41,64 @@ def test_extracts_user_text(tmp_path):
 def test_extracts_user_text_from_list_content(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "user", "message": {"role": "user", "content": [
             {"type": "text", "text": "first part"},
             {"type": "text", "text": "second part"},
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[0]["text"] == "first part second part"
+    assert any(e.get("text") == "first part second part" for e in result)
 
 
 def test_extracts_assistant_text(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "text", "text": "Done. Created the file."},
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert len(result) == 1
-    assert result[0]["role"] == "assistant"
-    assert result[0]["text"] == "Done. Created the file."
+    assert len(result) == 2
+    assert result[1]["role"] == "assistant"
+    assert result[1]["text"] == "Done. Created the file."
 
 
 def test_extracts_tool_use(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "name": "Write", "input": {"file_path": "/app.ts", "content": "big"}},
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[0]["tools"] == [{"tool": "Write", "params": {"file_path": "/app.ts", "content": "big"}}]
+    assert result[1]["tools"] == [{"tool": "Write", "params": {"file_path": "/app.ts", "content": "big"}}]
 
 
 def test_extracts_bash_command(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "name": "Bash", "input": {"command": "npm test"}},
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[0]["tools"][0]["params"] == {"command": "npm test"}
+    assert result[1]["tools"][0]["params"] == {"command": "npm test"}
 
 
 def test_extracts_search_query(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "name": "mcp__brave-search__brave_web_search", "input": {"query": "JWT guide"}},
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[0]["tools"][0]["params"] == {"query": "JWT guide"}
+    assert result[1]["tools"][0]["params"] == {"query": "JWT guide"}
 
 
 def test_skips_attachment_entries(tmp_path):
@@ -110,6 +118,7 @@ def test_skips_attachment_entries(tmp_path):
 def test_mixed_text_and_tools(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "text", "text": "Creating file now."},
             {"type": "tool_use", "name": "Write", "input": {"file_path": "/x.py", "content": "..."}},
@@ -117,8 +126,8 @@ def test_mixed_text_and_tools(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[0]["text"] == "Creating file now."
-    assert len(result[0]["tools"]) == 2
+    assert result[1]["text"] == "Creating file now."
+    assert len(result[1]["tools"]) == 2
 
 
 def test_truncates_long_text(tmp_path):
@@ -144,6 +153,7 @@ def test_max_entries_cap(tmp_path):
 def test_skips_thinking_blocks(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "thinking", "thinking": "internal reasoning..."},
             {"type": "text", "text": "visible response"},
@@ -151,7 +161,7 @@ def test_skips_thinking_blocks(tmp_path):
     ])
     result = scrape_transcript(str(f))
     assert "thinking" not in json.dumps(result)
-    assert result[0]["text"] == "visible response"
+    assert result[1]["text"] == "visible response"
 
 
 def test_skips_empty_user_content(tmp_path):
@@ -166,6 +176,7 @@ def test_skips_empty_user_content(tmp_path):
 def test_agent_tool_params(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "name": "Agent", "input": {
                 "description": "Review code", "subagent_type": "code-reviewer",
@@ -174,13 +185,14 @@ def test_agent_tool_params(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    params = result[0]["tools"][0]["params"]
+    params = result[1]["tools"][0]["params"]
     assert params == {"description": "Review code", "subagent_type": "code-reviewer", "prompt": "long prompt text here..."}
 
 
 def test_captures_agent_tool_result(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "id": "tool_123", "name": "Agent", "input": {
                 "description": "Review auth", "subagent_type": "code-reviewer",
@@ -193,15 +205,16 @@ def test_captures_agent_tool_result(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert len(result) == 2
-    assert result[1]["role"] == "tool_results"
-    assert result[1]["tool_results"][0]["tool"] == "Agent"
-    assert "security issues" in result[1]["tool_results"][0]["result"]
+    assert len(result) == 3
+    assert result[2]["role"] == "tool_results"
+    assert result[2]["tool_results"][0]["tool"] == "Agent"
+    assert "security issues" in result[2]["tool_results"][0]["result"]
 
 
 def test_captures_tool_result_string_content(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "id": "tool_456", "name": "Bash", "input": {"command": "npm test"}},
         ]}},
@@ -210,8 +223,8 @@ def test_captures_tool_result_string_content(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[1]["role"] == "tool_results"
-    assert result[1]["tool_results"][0]["result"] == "5 tests passed"
+    assert result[2]["role"] == "tool_results"
+    assert result[2]["tool_results"][0]["result"] == "5 tests passed"
 
 
 def test_skips_untracked_tool_results(tmp_path):
@@ -228,6 +241,7 @@ def test_skips_untracked_tool_results(tmp_path):
 def test_truncates_long_tool_result(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "id": "tool_789", "name": "Agent", "input": {"description": "big report"}},
         ]}},
@@ -236,12 +250,13 @@ def test_truncates_long_tool_result(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert len(result[1]["tool_results"][0]["result"]) == 5000
+    assert len(result[2]["tool_results"][0]["result"]) == 5000
 
 
 def test_tool_result_with_text(tmp_path):
     f = tmp_path / "t.jsonl"
     _write_entries(f, [
+        _USER_PROMPT,
         {"type": "assistant", "message": {"content": [
             {"type": "tool_use", "id": "tool_abc", "name": "Bash", "input": {"command": "ls"}},
         ]}},
@@ -251,9 +266,9 @@ def test_tool_result_with_text(tmp_path):
         ]}},
     ])
     result = scrape_transcript(str(f))
-    assert result[1]["role"] == "tool_results"
-    assert result[1]["text"] == "now fix the bug"
-    assert result[1]["tool_results"][0]["result"] == "file1.py file2.py"
+    assert result[2]["role"] == "tool_results"
+    assert result[2]["text"] == "now fix the bug"
+    assert result[2]["tool_results"][0]["result"] == "file1.py file2.py"
 
 
 def _make_prompt(text):
