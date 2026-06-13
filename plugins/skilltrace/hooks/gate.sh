@@ -13,6 +13,12 @@ fi
 
 # --- Stage 1: Init gate ---
 MARKER_PATH="$(pwd)/.skilltrace"
+# Worktree: resolve marker from original project root
+case "$(pwd)" in
+    */.claude/worktrees/*)
+        MARKER_PATH="${PWD%%/.claude/worktrees/*}/.skilltrace"
+        ;;
+esac
 if [ ! -f "$MARKER_PATH" ]; then
     case "$INPUT" in
         *wrapper.sh*init*|*wrapper.sh*skip*)
@@ -25,7 +31,7 @@ if [ ! -f "$MARKER_PATH" ]; then
             ;;
     esac
     PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-    PROJECT_DIR="$(pwd)"
+    PROJECT_DIR="${PWD%%/.claude/worktrees/*}"
     PLUGIN_ROOT_ESC=$(printf '%s' "$PLUGIN_ROOT" | sed 's/\\/\\\\/g; s/"/\\"/g')
     PROJECT_DIR_ESC=$(printf '%s' "$PROJECT_DIR" | sed 's/\\/\\\\/g; s/"/\\"/g')
     DENY_JSON=$(cat << DENY

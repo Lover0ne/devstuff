@@ -36,7 +36,13 @@ from src.skill_ops import prepare_create, prepare_new_version, update_skill_meta
 
 
 def _find_marker() -> Path | None:
-    marker = Path.cwd().resolve() / ".skilltrace"
+    cwd = Path.cwd().resolve()
+    parts = str(cwd).replace("\\", "/")
+    tag = "/.claude/worktrees/"
+    idx = parts.find(tag)
+    if idx != -1:
+        cwd = Path(parts[:idx])
+    marker = cwd / ".skilltrace"
     return marker if marker.exists() else None
 
 
