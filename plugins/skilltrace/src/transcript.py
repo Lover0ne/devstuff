@@ -9,6 +9,8 @@ import re
 from pathlib import Path
 
 _MAX_TEXT_LEN = 3000
+_MAX_ENTRIES = 500
+_MAX_PARAM_LEN = 20000
 
 _SECRET_PATTERNS = [
     (re.compile(r'(Bearer\s+)\S+', re.IGNORECASE), r'\1[REDACTED]'),
@@ -23,6 +25,11 @@ _SECRET_PATTERNS = [
     (re.compile(r'(gho_)\S{30,}'), r'\1[REDACTED]'),
     (re.compile(r'(sk-live-)\S+'), r'\1[REDACTED]'),
     (re.compile(r'(sk-proj-)\S+'), r'\1[REDACTED]'),
+    (re.compile(r'(AKIA)[A-Z0-9]{16}'), r'\1[REDACTED]'),
+    (re.compile(r'eyJ[A-Za-z0-9_-]{20,}\.eyJ[A-Za-z0-9_-]{20,}'), '[JWT_REDACTED]'),
+    (re.compile(r'(sk-ant-)[A-Za-z0-9_-]+'), r'\1[REDACTED]'),
+    (re.compile(r'-----BEGIN [A-Z ]*PRIVATE KEY-----'), '[PEM_KEY_REDACTED]'),
+    (re.compile(r'(postgres|mysql|mongodb)(://)[^@\s]+@'), r'\1\2[REDACTED]@'),
 ]
 
 
@@ -30,8 +37,7 @@ def _redact_secrets(text: str) -> str:
     for pattern, replacement in _SECRET_PATTERNS:
         text = pattern.sub(replacement, text)
     return text
-_MAX_ENTRIES = 500
-_MAX_PARAM_LEN = 20000
+
 
 _TOOL_KEY_PARAMS = {
     "Write": ["file_path", "content"],
@@ -294,8 +300,6 @@ def _scrape_transcript_impl(
 ) -> tuple[list[dict], int | None]:
     """Internal: scrape transcript with optional boundary. Returns (entries, new_boundary)."""
     path = Path(transcript_path).resolve()
-    if ".." in path.parts:
-        return [], None
     if not path.suffix == ".jsonl":
         return [], None
     if not path.exists():

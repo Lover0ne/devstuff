@@ -8,8 +8,8 @@ import re
 import uuid
 from pathlib import Path
 
-from src.shared import skills_dir, skilltrace_dir, project_skilltrace_dir, error_receipt, find_or_create_project_id
-from src.registry import load_registry, _save_registry
+from src.shared import skills_dir, project_skilltrace_dir, error_receipt, find_or_create_project_id, is_safe_skill_id
+from src.registry import load_registry
 
 _BODY_MARKER = "<!-- SKILL_BODY -->"
 
@@ -56,11 +56,6 @@ def _generate_skill_id(name: str = "") -> str:
     return f"sk-{uuid.uuid4().hex[:8]}"
 
 
-def _is_safe_id(skill_id: str) -> bool:
-    if not skill_id:
-        return False
-    return bool(re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", skill_id))
-
 
 def _get_registry_entry(skill_id: str) -> dict | None:
     reg = load_registry()
@@ -83,8 +78,8 @@ def _scaffold_content(name: str, description: str = "") -> str:
     return f'---\nname: {_slugify(name)}\ndescription: "{desc}"\n---\n\n{_BODY_MARKER}\n'
 
 
-def update_skill_meta(skill_id: str, description: str = "", tags: list = None) -> dict:
-    if not _is_safe_id(skill_id):
+def update_skill_meta(skill_id: str, description: str = "", tags: list[str] | None = None) -> dict:
+    if not is_safe_skill_id(skill_id):
         return error_receipt(f"Invalid skill ID: {skill_id}", "skill_meta")
     existing = _get_registry_entry(skill_id)
     if not existing:
@@ -136,23 +131,25 @@ def _archive_current(skill_id: str, version: int) -> Path | None:
         import shutil
         shutil.copy2(str(src), str(dst))
         os.remove(str(src))
-    except OSError as e:
-        return {"error": str(e)}
+    except OSError:
+        raise
     return dst
 
 
 def _update_registry(skill_id: str, metadata: dict, version: int) -> None:
     from src.shared import now_iso
-    reg = load_registry()
-    now = now_iso()
-    for i, skill in enumerate(reg["skills"]):
-        if skill["id"] == skill_id:
-            reg["skills"][i] = {**skill, **metadata, "version": version, "updated": now}
-            _save_registry(reg)
-            return
-    entry = {**metadata, "id": skill_id, "version": version, "created": now, "updated": now}
-    reg["skills"].append(entry)
-    _save_registry(reg)
+    from src.registry import _registry_lock, load_registry, _save_registry_unlocked
+    with _registry_lock():
+        reg = load_registry()
+        now = now_iso()
+        for i, skill in enumerate(reg["skills"]):
+            if skill["id"] == skill_id:
+                reg["skills"][i] = {**skill, **metadata, "version": version, "updated": now}
+                _save_registry_unlocked(reg)
+                return
+        entry = {**metadata, "id": skill_id, "version": version, "created": now, "updated": now}
+        reg["skills"].append(entry)
+        _save_registry_unlocked(reg)
 
 
 def prepare_create(metadata: dict) -> dict:
@@ -195,7 +192,7 @@ def prepare_create(metadata: dict) -> dict:
 
 
 def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
-    if not _is_safe_id(skill_id):
+    if not is_safe_skill_id(skill_id):
         return error_receipt(f"Invalid skill ID: {skill_id}", "skill_new_version")
     existing = _get_registry_entry(skill_id)
     if not existing:
@@ -217,9 +214,10 @@ def prepare_new_version(skill_id: str, change_summary: str = "") -> dict:
     if incomplete:
         archived = None
     else:
-        archived = _archive_current(skill_id, current_version)
-        if isinstance(archived, dict) and "error" in archived:
-            return error_receipt(f"Failed to archive current version: {archived['error']}", "skill_new_version")
+        try:
+            archived = _archive_current(skill_id, current_version)
+        except OSError as e:
+            return error_receipt(f"Failed to archive current version: {e}", "skill_new_version")
         if current_path.exists() and archived is None:
             return error_receipt("Failed to archive current version", "skill_new_version")
 

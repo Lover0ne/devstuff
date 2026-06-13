@@ -1,6 +1,7 @@
 """Shared utilities for Skilltrace. All file writes use these atomic helpers."""
 
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -17,6 +18,9 @@ def skills_dir() -> Path:
 def project_skilltrace_dir() -> Path:
     return Path.cwd().resolve() / ".claude" / "skilltrace"
 
+
+def is_safe_skill_id(sid: str) -> bool:
+    return bool(sid) and bool(re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid))
 
 
 def atomic_write_json(path: Path, data: dict) -> None:
@@ -46,12 +50,7 @@ _SKILLTRACE_MARKER = ".skilltrace"
 
 
 def write_marker(path: Path, data: dict) -> None:
-    import os
-    path.parent.mkdir(parents=True, exist_ok=True)
-    content = json.dumps(data, indent=2, ensure_ascii=False) + "\n"
-    tmp = path.with_suffix(".tmp")
-    tmp.write_text(content, encoding="utf-8")
-    os.replace(str(tmp), str(path))
+    atomic_write_json(path, data)
 
 
 def read_marker(path: Path) -> dict | None:

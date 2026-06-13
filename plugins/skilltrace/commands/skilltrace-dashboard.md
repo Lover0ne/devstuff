@@ -1,4 +1,5 @@
 ---
+name: skilltrace-dashboard
 description: Use when user asks to open the Skilltrace dashboard. "open skilltrace dashboard", "show skill dashboard", "skilltrace UI", "open dashboard". Opens an interactive HTML page in the browser.
 ---
 

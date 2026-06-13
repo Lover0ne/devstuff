@@ -38,7 +38,10 @@ def _registry_lock():
                     lock.unlink()
                 except OSError:
                     pass
-                fd = open(lock, "x")
+                try:
+                    fd = open(lock, "x")
+                except FileExistsError:
+                    continue
                 break
             time.sleep(delay)
             delay = min(delay * 2, 1.0)
@@ -82,10 +85,14 @@ def _save_registry(data: dict) -> None:
         atomic_write_json(_registry_path(), data)
 
 
+def _save_registry_unlocked(data: dict) -> None:
+    atomic_write_json(_registry_path(), data)
+
+
 def add_entry(entry: dict) -> dict:
-    import re
+    from src.shared import is_safe_skill_id
     sid = entry.get("id", "")
-    if sid and not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid):
+    if sid and not is_safe_skill_id(sid):
         return error_receipt(f"Invalid skill ID: {sid}", "registry_add")
     with _registry_lock():
         reg = load_registry()

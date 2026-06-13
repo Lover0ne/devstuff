@@ -5,11 +5,10 @@ outputs a self-contained HTML file with embedded data and opens it in the browse
 """
 
 import json
-import re
 import webbrowser
 from pathlib import Path
 
-from src.shared import skilltrace_dir, now_iso, receipt
+from src.shared import skilltrace_dir, now_iso, is_safe_skill_id
 from src.registry import load_registry
 
 
@@ -20,11 +19,6 @@ _SKIP_DIRS = {
     ".next", ".nuxt", "target", "bin", "obj", ".cache",
     "AppData", "Application Data", ".npm", ".yarn",
 }
-
-
-def _is_safe_skill_id(sid: str) -> bool:
-    import re as _re
-    return bool(sid) and bool(_re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", sid))
 
 
 _SCAN_TIMEOUT = 120
@@ -75,7 +69,7 @@ def _find_projects() -> list[dict]:
 
 
 def _read_skill_content(project_path: str, skill_id: str) -> str:
-    if not _is_safe_skill_id(skill_id):
+    if not is_safe_skill_id(skill_id):
         return ""
     candidates = [
         Path(project_path) / ".claude" / "skills" / skill_id / "SKILL.md",
@@ -94,7 +88,7 @@ _MAX_VERSIONS = 50
 
 
 def _read_versions(project_path: str, skill_id: str, current_version: int) -> list[dict]:
-    if not _is_safe_skill_id(skill_id):
+    if not is_safe_skill_id(skill_id):
         return []
     versions = []
     start_version = max(1, current_version - _MAX_VERSIONS)
@@ -136,7 +130,7 @@ def _collect_data() -> dict:
         enriched_skills = []
         for s in proj_skills:
             sid = s.get("id", "")
-            if not _is_safe_skill_id(sid):
+            if not is_safe_skill_id(sid):
                 continue
             ver = s.get("version", 1)
             skill_content = _read_skill_content(proj["path"], sid)
@@ -312,15 +306,6 @@ a:hover { text-decoration: underline; }
 .md-content em { font-style: italic; }
 .md-content hr { border: none; border-top: 1px solid var(--border); margin: 20px 0; }
 
-/* History */
-.history-panel { margin-top: 14px; border-top: 1px solid var(--border); padding-top: 14px; display: none; }
-.history-panel.open { display: block; }
-.version-list { display: flex; flex-direction: column; gap: 4px; }
-.version-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-radius: 8px; cursor: pointer; font-size: 13px; transition: background 0.15s; }
-.version-item:hover { background: var(--bg3); }
-.version-item.current { font-weight: 600; }
-.version-badge { font-size: 11px; font-weight: 600; padding: 3px 10px; border-radius: 10px; background: var(--bg3); color: var(--fg2); }
-.version-badge.current { background: var(--accent); color: white; }
 .diff-view { margin-top: 14px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
 .diff-header { padding: 10px 14px; background: var(--bg3); font-size: 13px; font-weight: 600; color: var(--accent-dark); border-bottom: 1px solid var(--border); }
 .diff-line { padding: 3px 14px; font-family: 'Cascadia Code', 'SF Mono', Consolas, monospace; font-size: 12px; white-space: pre-wrap; word-break: break-all; }
@@ -515,11 +500,6 @@ function renderSkills() {
 let modalSkill = null;
 let diffMode = 'side';
 
-function toggleHistory(idx) {
-  const el = document.getElementById('history-' + idx);
-  el.classList.toggle('open');
-}
-
 function viewSkill(idx) {
   const skills = getFilteredSkills();
   modalSkill = skills[idx];
@@ -703,11 +683,6 @@ function renderInlineDiff(diff, vA, vB) {
     else html += `<div class="diff-line diff-ctx">  ${esc(d.text)}</div>`;
   }
   return html + '</div>';
-}
-
-function viewVersion(cardIdx, vIdx) {
-  viewSkill(cardIdx);
-  showVersionInModal(vIdx);
 }
 
 function closeModal() {
@@ -937,6 +912,7 @@ document.getElementById('loading').style.display='none';
 def generate(no_open: bool = False) -> dict:
     data = _collect_data()
     data_json = json.dumps(data, ensure_ascii=False)
+    data_json = data_json.replace("</", "<\\/")
     html = _HTML_TEMPLATE.replace("__DATA__", data_json)
 
     out_dir = skilltrace_dir()

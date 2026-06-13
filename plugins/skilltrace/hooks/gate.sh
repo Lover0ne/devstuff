@@ -20,14 +20,16 @@ if [ ! -f "$MARKER_PATH" ]; then
             ;;
     esac
     case "$INPUT" in
-        *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"EnterPlanMode\"*|*\"ExitPlanMode\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*|*\"ScheduleWakeup\"*)
+        *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*)
             exit 0
             ;;
     esac
     PLUGIN_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
     PROJECT_DIR="$(pwd)"
+    PLUGIN_ROOT_ESC=$(printf '%s' "$PLUGIN_ROOT" | sed 's/\\/\\\\/g; s/"/\\"/g')
+    PROJECT_DIR_ESC=$(printf '%s' "$PROJECT_DIR" | sed 's/\\/\\\\/g; s/"/\\"/g')
     DENY_JSON=$(cat << DENY
-{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"ERROR: Skilltrace plugin is active but this project is NOT initialized. Tool use is BLOCKED until resolved. You MUST use AskUserQuestion NOW with: question='Skilltrace is installed. Enable skill tracking for this project?', header='Skilltrace', options=[{label:'Yes',description:'Enable — silently learns from your work and creates reusable skills'},{label:'No',description:'Skip for now — enable later with /skilltrace-start'}]. After the user answers: if Yes, run this exact Bash command: bash \"${PLUGIN_ROOT}/hooks/wrapper.sh\" init \"${PROJECT_DIR}\" — if No, run this exact Bash command: bash \"${PLUGIN_ROOT}/hooks/wrapper.sh\" skip \"${PROJECT_DIR}\" — Do NOT use the Skill tool for init or skip. You MUST NOT skip or init without asking the user first. Autonomous skipping is forbidden."}}
+{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"deny","permissionDecisionReason":"ERROR: Skilltrace plugin is active but this project is NOT initialized. Tool use is BLOCKED until resolved. You MUST use AskUserQuestion NOW with: question='Skilltrace is installed. Enable skill tracking for this project?', header='Skilltrace', options=[{label:'Yes',description:'Enable — silently learns from your work and creates reusable skills'},{label:'No',description:'Skip for now — enable later with /skilltrace-start'}]. After the user answers: if Yes, run this exact Bash command: bash \"${PLUGIN_ROOT_ESC}/hooks/wrapper.sh\" init \"${PROJECT_DIR_ESC}\" — if No, run this exact Bash command: bash \"${PLUGIN_ROOT_ESC}/hooks/wrapper.sh\" skip \"${PROJECT_DIR_ESC}\" — Do NOT use the Skill tool for init or skip. You MUST NOT skip or init without asking the user first. Autonomous skipping is forbidden."}}
 DENY
 )
     echo "$DENY_JSON"
@@ -43,10 +45,10 @@ PENDING="$HOME/.skilltrace-gate/pending"
 
 # Allow non-blocking tools without consuming the reminder
 case "$INPUT" in
-    *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"EnterPlanMode\"*|*\"ExitPlanMode\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*|*\"ScheduleWakeup\"*)
+    *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*)
         exit 0
         ;;
-    *wrapper.sh*|*\"Skill\"*skilltrace*)
+    *wrapper.sh*|*\"skilltrace:\"*)
         exit 0
         ;;
 esac

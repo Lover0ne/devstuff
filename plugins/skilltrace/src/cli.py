@@ -310,6 +310,7 @@ def cmd_reindex() -> dict:
     if not sdir.exists():
         return receipt("ok", "reindex", "0 skills found")
     project_id = _read_project_id() or "unknown"
+    existing_entries = {e["id"]: e for e in list_entries()}
     count = 0
     for skill_dir in sdir.iterdir():
         if not skill_dir.is_dir():
@@ -326,7 +327,9 @@ def cmd_reindex() -> dict:
                 name = line[2:].strip()
             if line.startswith("description:"):
                 description = line.split(":", 1)[1].strip().strip('"')
-        existing = next((e for e in list_entries() if e.get("id") == skill_id), None)
+        existing = existing_entries.get(skill_id)
+        if existing and existing.get("name") == name and existing.get("description") == description:
+            continue
         existing_tags = existing.get("tags", []) if existing else []
         add_entry({
             "id": skill_id,
@@ -342,8 +345,8 @@ def cmd_reindex() -> dict:
 def cmd_history(skill_id: str) -> dict:
     if not skill_id:
         return error_receipt("Skill ID required", "history")
-    import re
-    if not re.match(r"^[a-zA-Z0-9][a-zA-Z0-9_-]*$", skill_id):
+    from src.shared import is_safe_skill_id
+    if not is_safe_skill_id(skill_id):
         return error_receipt(f"Invalid skill ID: {skill_id}", "history")
     entries = list_entries()
     entry = next((e for e in entries if e.get("id") == skill_id), None)

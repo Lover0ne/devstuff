@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.transcript import scrape_transcript, _scrape_transcript_impl
+from src.transcript import scrape_transcript, _scrape_transcript_impl, _redact_secrets, _scrape_subagent
 
 
 def _write_entries(path: Path, entries: list[dict]):
@@ -306,6 +306,60 @@ def _multi_prompt_transcript():
     ]
 
 
+class TestSecretRedaction:
+    def test_redacts_bearer_token(self):
+        assert "[REDACTED]" in _redact_secrets("Authorization: Bearer sk-live-abc123xyz")
+
+    def test_redacts_api_key(self):
+        assert "[REDACTED]" in _redact_secrets("api_key=super_secret_key_123")
+
+    def test_redacts_password(self):
+        assert "[REDACTED]" in _redact_secrets("password=hunter2")
+
+    def test_redacts_github_token(self):
+        assert "[REDACTED]" in _redact_secrets("GITHUB_TOKEN=ghp_" + "a" * 30)
+
+    def test_redacts_github_oauth(self):
+        assert "[REDACTED]" in _redact_secrets("token: gho_" + "b" * 30)
+
+    def test_redacts_sk_live(self):
+        assert "[REDACTED]" in _redact_secrets("key: sk-live-abc123")
+
+    def test_redacts_sk_proj(self):
+        assert "[REDACTED]" in _redact_secrets("sk-proj-my_project_key")
+
+    def test_redacts_url_credentials(self):
+        result = _redact_secrets("https://user:pass@example.com/api")
+        assert "pass" not in result
+
+    def test_redacts_aws_secret(self):
+        assert "[REDACTED]" in _redact_secrets("AWS_SECRET_ACCESS_KEY=wJalrXUtnFEMI/K7MDENG")
+
+    def test_redacts_aws_access_key_id(self):
+        result = _redact_secrets("AKIAIOSFODNN7EXAMPLE")
+        assert "IOSFODNN7EXAMPLE" not in result
+
+    def test_redacts_jwt(self):
+        jwt = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJ1c2VyIiwibmFtZSI6IkpvaG4ifQ.signature"
+        result = _redact_secrets(jwt)
+        assert "eyJzdWIi" not in result
+
+    def test_redacts_sk_ant(self):
+        assert "[REDACTED]" in _redact_secrets("sk-ant-api03-my_key_here")
+
+    def test_redacts_pem_key(self):
+        result = _redact_secrets("-----BEGIN PRIVATE KEY-----")
+        assert "PRIVATE KEY" not in result
+
+    def test_redacts_postgres_connection(self):
+        result = _redact_secrets("postgres://admin:secret@db.host:5432/mydb")
+        assert "secret" not in result
+
+    def test_preserves_normal_text(self):
+        text = "Hello world, this is normal text with no secrets."
+        assert _redact_secrets(text) == text
+
+
 class TestBoundaryWindowing:
 
     def test_default_no_boundary_uses_last_two(self, tmp_path):
@@ -366,3 +420,54 @@ class TestBoundaryWindowing:
         result = scrape_transcript(str(f))
         assert isinstance(result, list)
         assert any("gate.sh" in str(e) for e in result)
+
+
+class TestSubagentScraping:
+
+    def test_extracts_write_tool(self, tmp_path):
+        sa = tmp_path / "agent-123.jsonl"
+        sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Write", "input": {"file_path": "/app.py", "content": "code"}}
+        ]}}) + "\n", encoding="utf-8")
+        actions = _scrape_subagent(sa)
+        assert len(actions) == 1
+        assert actions[0]["tool"] == "Write"
+
+    def test_extracts_bash_tool(self, tmp_path):
+        sa = tmp_path / "agent-456.jsonl"
+        sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Bash", "input": {"command": "npm install"}}
+        ]}}) + "\n", encoding="utf-8")
+        actions = _scrape_subagent(sa)
+        assert len(actions) == 1
+        assert actions[0]["tool"] == "Bash"
+        assert actions[0]["params"]["command"] == "npm install"
+
+    def test_skips_read_tools(self, tmp_path):
+        sa = tmp_path / "agent-789.jsonl"
+        sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Read", "input": {"file_path": "/app.py"}}
+        ]}}) + "\n", encoding="utf-8")
+        actions = _scrape_subagent(sa)
+        assert len(actions) == 0
+
+    def test_skips_wrapper_commands(self, tmp_path):
+        sa = tmp_path / "agent-abc.jsonl"
+        sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "Bash", "input": {"command": "bash wrapper.sh init"}}
+        ]}}) + "\n", encoding="utf-8")
+        actions = _scrape_subagent(sa)
+        assert len(actions) == 0
+
+    def test_nonexistent_file_returns_empty(self, tmp_path):
+        sa = tmp_path / "nonexistent.jsonl"
+        assert _scrape_subagent(sa) == []
+
+    def test_extracts_mcp_tools(self, tmp_path):
+        sa = tmp_path / "agent-mcp.jsonl"
+        sa.write_text(json.dumps({"type": "assistant", "message": {"content": [
+            {"type": "tool_use", "name": "mcp__brave__search", "input": {"query": "test"}}
+        ]}}) + "\n", encoding="utf-8")
+        actions = _scrape_subagent(sa)
+        assert len(actions) == 1
+        assert actions[0]["tool"] == "mcp__brave__search"

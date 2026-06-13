@@ -32,8 +32,6 @@ def test_add_skill_entry(tmp_path, monkeypatch):
         "name": "Setting up MCP Server",
         "description": "Use when setting up MCP",
         "tags": ["mcp", "server"],
-        "files_touched": ["src/server.ts"],
-        "tools_used": ["Write", "Bash"],
         "path": "setup-mcp/SKILL.md",
     }
     result = registry.add_entry(entry)
