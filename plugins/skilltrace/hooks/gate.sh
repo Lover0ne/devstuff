@@ -48,7 +48,7 @@ case "$INPUT" in
     *\"AskUserQuestion\"*|*\"TaskCreate\"*|*\"TaskUpdate\"*|*\"TaskList\"*|*\"TaskGet\"*|*\"CronCreate\"*|*\"CronDelete\"*|*\"CronList\"*)
         exit 0
         ;;
-    *wrapper.sh*|*\"skilltrace:\"*|*\"Workflow\"*|*\"Agent\"*)
+    *wrapper.sh*|*\"skilltrace:\"*|*\"Workflow\"*|*\"Agent\"*|*\"EnterPlanMode\"*)
         exit 0
         ;;
 esac
