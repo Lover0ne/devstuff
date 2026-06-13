@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pytest
 
-from src.transcript import scrape_transcript, _scrape_transcript_impl, _redact_secrets, _scrape_subagent, _scrape_workflow
+from src.transcript import scrape_transcript, _scrape_transcript_impl, _redact_secrets, _scrape_subagent, _scrape_workflow, _extract_agent_intent
 
 
 def _write_entries(path: Path, entries: list[dict]):
@@ -511,13 +511,15 @@ class TestWorkflowScraping:
         agent_file = wf_dir / "agent-a1.jsonl"
         agent_file.write_text(_make_workflow_agent_jsonl([
             {"type": "assistant", "message": {"content": [
+                {"type": "text", "text": "Creating output file."},
                 {"type": "tool_use", "name": "Write", "input": {"file_path": "/out.py", "content": "code"}},
             ]}},
         ]), encoding="utf-8")
-        actions, count = _scrape_workflow(str(wf_dir))
+        agents, count = _scrape_workflow(str(wf_dir))
         assert count == 1
-        assert len(actions) == 1
-        assert actions[0]["tool"] == "Write"
+        assert len(agents) == 1
+        assert agents[0]["intent"] == "Creating output file."
+        assert agents[0]["actions"][0]["tool"] == "Write"
 
     def test_scrape_workflow_multiple_agents(self, tmp_path):
         wf_dir = tmp_path / "wf_test"
@@ -526,12 +528,15 @@ class TestWorkflowScraping:
             af = wf_dir / f"agent-a{i}.jsonl"
             af.write_text(_make_workflow_agent_jsonl([
                 {"type": "assistant", "message": {"content": [
+                    {"type": "text", "text": f"Editing file {i}."},
                     {"type": "tool_use", "name": "Edit", "input": {"file_path": f"/f{i}.py", "old_string": "a", "new_string": "b"}},
                 ]}},
             ]), encoding="utf-8")
-        actions, count = _scrape_workflow(str(wf_dir))
+        agents, count = _scrape_workflow(str(wf_dir))
         assert count == 3
-        assert len(actions) == 3
+        assert len(agents) == 3
+        assert agents[0]["intent"] == "Editing file 0."
+        assert agents[2]["intent"] == "Editing file 2."
 
     def test_scrape_workflow_respects_agent_cap(self, tmp_path):
         wf_dir = tmp_path / "wf_test"
@@ -543,9 +548,9 @@ class TestWorkflowScraping:
                     {"type": "tool_use", "name": "Bash", "input": {"command": f"echo {i}"}},
                 ]}},
             ]), encoding="utf-8")
-        actions, count = _scrape_workflow(str(wf_dir))
+        agents, count = _scrape_workflow(str(wf_dir))
         assert count == 60
-        assert len(actions) == 50
+        assert len(agents) == 50
 
     def test_workflow_detected_in_transcript(self, tmp_path):
         wf_dir = tmp_path / "subagents" / "workflows" / "wf_test"
@@ -570,8 +575,8 @@ class TestWorkflowScraping:
         assert wf_entries[0]["name"] == "build-app"
         assert wf_entries[0]["summary"] == "built app"
         assert wf_entries[0]["agent_count"] == 1
-        assert len(wf_entries[0]["actions"]) == 1
-        assert wf_entries[0]["actions"][0]["tool"] == "Write"
+        assert len(wf_entries[0]["agents"]) == 1
+        assert wf_entries[0]["agents"][0]["actions"][0]["tool"] == "Write"
 
     def test_workflow_skilltrace_filtered(self, tmp_path):
         f = tmp_path / "transcript.jsonl"
@@ -644,7 +649,53 @@ class TestWorkflowScraping:
         assert len(sa_entries) == 1
         assert len(wf_entries) == 1
         assert sa_entries[0]["actions"][0]["tool"] == "Edit"
-        assert wf_entries[0]["actions"][0]["tool"] == "Write"
+        assert wf_entries[0]["agents"][0]["actions"][0]["tool"] == "Write"
+
+    def test_extract_agent_intent(self, tmp_path):
+        af = tmp_path / "agent-x.jsonl"
+        af.write_text(_make_workflow_agent_jsonl([
+            {"type": "user", "message": {"role": "user", "content": "do something"}},
+            {"type": "assistant", "message": {"content": [
+                {"type": "text", "text": "I'll create the database schema now."},
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/schema.sql", "content": "..."}},
+            ]}},
+        ]), encoding="utf-8")
+        assert _extract_agent_intent(af) == "I'll create the database schema now."
+
+    def test_extract_agent_intent_missing_text(self, tmp_path):
+        af = tmp_path / "agent-y.jsonl"
+        af.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/x.py", "content": "y"}},
+            ]}},
+        ]), encoding="utf-8")
+        assert _extract_agent_intent(af) == ""
+
+    def test_extract_agent_intent_nonexistent(self, tmp_path):
+        assert _extract_agent_intent(tmp_path / "nope.jsonl") == ""
+
+    def test_workflow_intent_in_full_output(self, tmp_path):
+        wf_dir = tmp_path / "subagents" / "workflows" / "wf_int"
+        wf_dir.mkdir(parents=True)
+        af = wf_dir / "agent-a1.jsonl"
+        af.write_text(_make_workflow_agent_jsonl([
+            {"type": "assistant", "message": {"content": [
+                {"type": "text", "text": "Setting up the auth middleware."},
+                {"type": "tool_use", "name": "Write", "input": {"file_path": "/auth.ts", "content": "middleware code"}},
+            ]}},
+        ]), encoding="utf-8")
+        f = tmp_path / "transcript.jsonl"
+        _write_entries(f, [
+            _make_prompt("add auth"),
+            _make_tool_use("Workflow", {"script": "meta"}),
+            _make_workflow_tooluse_result(str(wf_dir), "auth-setup", "setup auth"),
+            _turn_end(),
+            _make_prompt("next"),
+        ])
+        entries, _ = _scrape_transcript_impl(str(f))
+        wf = [e for e in entries if e.get("role") == "workflow"][0]
+        assert wf["agents"][0]["intent"] == "Setting up the auth middleware."
+        assert wf["agents"][0]["actions"][0]["params"]["file_path"] == "/auth.ts"
 
     def test_workflow_tool_params_extracted(self, tmp_path):
         f = tmp_path / "t.jsonl"

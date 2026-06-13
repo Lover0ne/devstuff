@@ -248,6 +248,34 @@ def _scrape_subagent(subagent_path: Path) -> list[dict]:
 
 _MAX_WORKFLOW_AGENTS = 50
 _MAX_WORKFLOW_ACTIONS = 200
+_MAX_INTENT_LEN = 300
+
+
+def _extract_agent_intent(agent_path: Path) -> str:
+    try:
+        with open(agent_path, encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line:
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+                if entry.get("type") != "assistant":
+                    continue
+                msg = entry.get("message", {})
+                content = msg.get("content")
+                if not isinstance(content, list):
+                    continue
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "text":
+                        text = block.get("text", "").strip()
+                        if text:
+                            return text[:_MAX_INTENT_LEN]
+    except OSError:
+        pass
+    return ""
 
 
 def _scrape_workflow(workflow_dir: str) -> tuple[list[dict], int]:
@@ -256,14 +284,18 @@ def _scrape_workflow(workflow_dir: str) -> tuple[list[dict], int]:
         return [], 0
     agent_files = sorted(wf_path.glob("agent-*.jsonl"))
     agent_count = len(agent_files)
-    all_actions: list[dict] = []
+    agents: list[dict] = []
+    total_actions = 0
     for af in agent_files[:_MAX_WORKFLOW_AGENTS]:
         actions = _scrape_subagent(af)
-        all_actions.extend(actions)
-        if len(all_actions) >= _MAX_WORKFLOW_ACTIONS:
-            all_actions = all_actions[:_MAX_WORKFLOW_ACTIONS]
+        if not actions:
+            continue
+        intent = _extract_agent_intent(af)
+        agents.append({"intent": intent, "actions": actions})
+        total_actions += len(actions)
+        if total_actions >= _MAX_WORKFLOW_ACTIONS:
             break
-    return all_actions, agent_count
+    return agents, agent_count
 
 
 def _redact_entry(entry: dict) -> dict:
@@ -410,14 +442,20 @@ def _scrape_transcript_impl(
     workflow_results: list[dict] = []
     if workflow_refs:
         for _idx, wf_dir, wf_name, wf_summary in workflow_refs:
-            actions, agent_count = _scrape_workflow(wf_dir)
-            if actions:
+            agents, agent_count = _scrape_workflow(wf_dir)
+            if agents:
                 workflow_results.append({
                     "role": "workflow",
                     "name": wf_name,
                     "summary": wf_summary,
                     "agent_count": agent_count,
-                    "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in actions],
+                    "agents": [
+                        {
+                            "intent": ag["intent"],
+                            "actions": [_redact_entry({"tools": [a]}).get("tools", [a])[0] for a in ag["actions"]],
+                        }
+                        for ag in agents
+                    ],
                 })
     final = []
     for idx, r in results:
