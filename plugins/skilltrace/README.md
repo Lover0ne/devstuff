@@ -36,13 +36,25 @@ A background agent handles everything: it reads what happened, decides if it's w
 
 | When | What happens |
 |------|-------------|
-| Session starts | Skilltrace activates silently |
+| Session starts | Skilltrace hooks activate: SessionStart creates directories and prints a welcome, PreToolUse gate checks whether the project has been initialized |
 | You work normally | Code, debug, build, deploy. No interruptions |
-| You send a new prompt | Background agent evaluates the *previous* task |
-| Something worth keeping | A skill is generated in `.claude/skills/` |
-| Session ends | Final check to make sure the last task wasn't missed |
+| You send a new prompt | UserPromptSubmit arms the task boundary; on the next tool use, the gate triggers a background evaluation of the *previous* task |
+| Something worth keeping | A skill is generated in `.claude/skills/` within the project |
+| Session ends | SessionEnd triggers a final evaluation pass so the last task isn't missed |
 
 No configuration. No context pollution. No extra prompts.
+
+## Architecture
+
+Skilltrace is built on four interlocking pieces. You never interact with any of them directly, but here's what's happening under the hood.
+
+**Gate system.** A PreToolUse hook (`gate.sh`) runs a three-stage check before every tool call. Stage 0: if the call is from a spawned subagent, let it through (subagents bypass the gate entirely). Stage 1: if the project hasn't been initialized yet (no `.skilltrace` marker), block the tool and prompt you to init or skip. Stage 2: if a task boundary has been armed, block once to force Claude to spawn the skilltracer agent before continuing. The gate uses atomic file moves to prevent races in concurrent sessions.
+
+**Skilltracer agent.** A background agent (`agents/skilltracer.md`) that Claude spawns after every task boundary. It always scrapes the transcript independently rather than trusting the main conversation's summary. Its procedure: list existing project skills, scrape the transcript for what just happened, match that work against known skills, then create or version skills as needed. It also handles skill-derived work: if you invoked an existing skill, it evaluates whether the output was a faithful reproduction, a specialization, or an improvement.
+
+**Transcript scraper.** Boundary-aware: it reads Claude Code's JSONL transcripts windowed to the previous prompt cycle, using the `last_traced_boundary` stored in the `.skilltrace` marker. When consecutive prompts skip evaluation, the window expands to cover the missed work. It captures subagent and workflow actions, records up to five parameters for MCP tool calls, redacts secrets, and filters out Skilltrace's own internal tool calls.
+
+**Per-project storage.** Everything lives inside the project, not in your home directory. Skills go to `{project}/.claude/skills/{skill-id}/SKILL.md`. Versions are archived in `{project}/.claude/skilltrace/versions/{skill-id}/v{n}.md`. The registry at `{project}/.claude/skilltrace/registry.json` indexes all skills. The only global file is `~/.claude/skilltrace/config.json` for cross-project preferences.
 
 ## What makes it different
 
@@ -51,8 +63,7 @@ No configuration. No context pollution. No extra prompts.
 - **Per-project, not global.** Each project has its own skill library in `.claude/skills/`. Skills from your API project don't pollute your frontend project. No cross-contamination.
 - **Smart versioning.** Skills evolve with your approach. When you improve how you deploy, Skilltrace updates the skill. Old versions are archived, never lost.
 - **Specific, not generic.** Not "how to set up auth" but "setting up NextJS auth with Clerk and Drizzle ORM". Real stack, real tools, real steps.
-- **Stop anytime.** Don't want tracking on a specific project? `/skilltrace-stop`. Want it back? `/skilltrace-start`. Per project, not global.
-- **Three commands to learn.** Dashboard, stop, start. Everything else is automatic or available through natural language.
+- **Worktree-aware.** Works transparently when you use Claude Code worktrees. The gate resolves the project root from the original directory, so skills are always stored in the right place regardless of which worktree you're working in.
 - **Cross-platform.** macOS, Linux, Windows.
 
 ## The dashboard
@@ -111,19 +122,13 @@ Two commands and you're done. On your next session, Skilltrace introduces itself
 | Command | What it does |
 |---------|-------------|
 | `/skilltrace-dashboard` | Open the interactive dashboard in your browser |
-| `/skilltrace-stop` | Stop tracking for this project |
-| `/skilltrace-start` | Start tracking |
-
-You can also just ask Claude in plain English: "open the skilltrace dashboard", "stop skilltrace", "start tracking".
-
-If you want the same information the dashboard shows but without leaving your terminal, these commands give you quick answers inline:
-
-| Command | What it does |
-|---------|-------------|
-| `/skilltrace-skills` | List skills, status, and overview for this project or all projects |
+| `/skilltrace-start` | Enable or resume tracking for this project |
+| `/skilltrace-stop` | Stop/pause tracking for this project |
+| `/skilltrace-skills` | List all skills grouped by project, with status |
 | `/skilltrace-history` | Show version history of a specific skill |
+| `/skilltrace-reindex` | Rebuild registry from SKILL.md files on disk |
 
-If your skill registry gets out of sync with files on disk (rare, but possible), you can rebuild it with `/skilltrace-reindex`.
+You can also just ask Claude in plain English: "open the skilltrace dashboard", "stop skilltrace", "list my skills".
 
 ## Requirements
 
